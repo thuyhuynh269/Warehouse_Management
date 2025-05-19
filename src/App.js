@@ -4,7 +4,8 @@ import { BrowserRouter, Routes,Route  } from "react-router-dom";
 import Sidebar from './components/common/side/Sidebar';
 import Header from './components/common/header/ShopHeader';
 import Warehouse from './pages/Warehouse'; 
-import Category from './pages/Category'; // Import the Category component
+import Category from './pages/Category'; 
+import Manufacturer from './pages/Manufacturers'; // Import the Manufacturer component
 
 function App() {
   return (
@@ -16,8 +17,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Warehouse />} />
             <Route path="/warehouse" element={<Warehouse />} />
-            <Route path="/category" element={<Category />} /> {/* Add the route for Category */}
-            {/* Add more routes as needed */}
+            <Route path="/category" element={<Category />} /> 
+            <Route path="/manufacturers" element={<Manufacturer/>} />
           </Routes> {/* Render the Warehouse component here */}
         </div>
       </div>

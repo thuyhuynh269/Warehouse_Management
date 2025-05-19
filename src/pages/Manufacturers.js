@@ -1,32 +1,34 @@
 import { useState, useEffect, useRef } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid } from '@mui/x-data-grid';
+
 import { toast } from "react-toastify";
-import { Card, CardContent } from "@mui/material";
+
+import { Card, CardContent, Select, MenuItem, InputLabel } from "@mui/material";
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
 
-const Warehouse = () => {
+const Manufacturer  = () => {
   const columns = [
     { field: "id", headerName: "ID", width: 50 },
-    { field: "wareName", headerName: "Tên kho", width: 150 },
-    { field: "address", headerName: "Địa chỉ", width: 200 },
-    { field: "tel", headerName: "Điện thoại", width: 150 },
-    { field: "email", headerName: "Email", width: 200 },
+    { field: "manuName", headerName: "Tên nhà SXSX", width: 200 },
+    { field: "address", headerName: "Địa chỉ", width: 100 },
+    { field: "tel", headerName: "Điện thoại", width: 100 },
+    { field: "email", headerName: "Email", width: 100 },
+    { field: "wwebsite", headerName: "Website", width: 100 },
   ];
-
   const [selectedRow, setSelectedRow] = useState(null);
   const [rows, setRows] = useState([]);
-  const [wareName, setwareName] = useState("");
+  const [manuName, setName] = useState("");
   const [address, setAddress] = useState("");
   const [tel, setTel] = useState("");
   const [email, setEmail] = useState("");
-  
+  const [website, setWebsite] = useState("");
+ 
+  const lable = useRef();
 
-  const label = useRef();
-
-const getData = () => {
+  const getData = () => {
     request
-      .get("Warehouse?isActive=true")
+      .get("Manufacturers?isActive=true")
       .then((response) => {
         console.log(response);
         setRows(response.data);
@@ -38,26 +40,30 @@ const getData = () => {
 
   useEffect(getData, []);
 
-  const handleRowClick = (params) => {
-    const selectedName = params.row.id === selectedRow ? "" : params.row.wareName;
+  
+ const handleRowClick = (params) => {
+    const selectedName = params.row.id === selectedRow ? "" : params.row.manuName;
     console.log(params);
     setSelectedRow(params.row.id === selectedRow ? null : params.row.id);
-    setwareName(params.row.wareName);
+    setName(params.row.manuName);
     setAddress(params.row.address);
     setTel(params.row.tel);
     setEmail(params.row.email);
-    label.current.innerText = selectedName;
+    setWebsite(params.row.website);
+    lable.current.innerText = selectedName;
   };
+
 
   const handleAddData = () => {
     request
-      .post("warehouse", { wareName, address, tel, email })
+      .post("manufacturers", { manuName, address, tel, email, website })
       .then((response) => {
         getData();
-        setwareName("");
+        setName("");
         setAddress("");
         setTel("");
         setEmail("");
+        setWebsite("");
         toast.success(response.data.message);
       })
       .catch((error) => {
@@ -67,24 +73,21 @@ const getData = () => {
 
   const deselect = () => {
     setSelectedRow(null);
-    label.current.innerText = "";
-    setwareName("");
-    setAddress("");
-    setTel("");
-    setEmail("");
+    lable.current.innerText = "";
   };
 
   const handleUpdateData = () => {
     request
-      .put(`warehouse/${selectedRow}`, { id: selectedRow, wareName, address, tel, email })
+      .put(`manufacturers/${selectedRow}`, { id: selectedRow, manuName, address, tel, email, website })
       .then((response) => {
         getData();
-        setwareName("");
+        setName("");
         setAddress("");
         setTel("");
         setEmail("");
+        setWebsite("");
         setSelectedRow(null);
-        label.current.innerText = "";
+        lable.current.innerText = "";
         toast.success(response.data.message);
       })
       .catch((error) => {
@@ -94,15 +97,16 @@ const getData = () => {
 
   const handleDeleteData = () => {
     request
-      .delete(`warehouse/${selectedRow}`)
+      .delete(`manufacturers/${selectedRow}`)
       .then((response) => {
         getData();
-        setwareName("");
-        setAddress("");   
+        setName("");
+        setAddress("");
         setTel("");
         setEmail("");
+        setWebsite("");
         setSelectedRow(null);
-        label.current.innerText = "";
+        lable.current.innerText = "";
         toast.success(response.data.message);
       })
       .catch((error) => {
@@ -112,8 +116,8 @@ const getData = () => {
 
   return (
     <>
-     <h1 className="font-bold text-3xl text-green-800 mb-8">Danh sách kho hàng </h1>
-    <div className="grid grid-cols-3 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
+    <h1 className="font-bold text-3xl text-green-800 mb-8">Danh sách nhà sản xuấtxuất</h1>
+    <div className="grid grid-cols-1 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
       <Card >
         <CardContent style={{ height: "80%", width: "100%" }}>
             <DataGrid
@@ -131,7 +135,7 @@ const getData = () => {
           <div className="border-solid border-2 border-grey-500 rounded-lg grid grid-cols-5 col-span-2 w-full">
             <span
               className="rounded-l-lg px-1 col-span-4 text-center justify-center m-auto"
-              ref={label}
+              ref={lable}
             />
             <Button
               className="w-auto text-red-500 font-bold bg-gray-100"
@@ -149,18 +153,18 @@ const getData = () => {
           </Button>
         </div>
       </Card>
-      <div className="col-span-1">
+      <div>
         <div className="mx-4 mb-2">
-          <label className="text-green-900 text-xl float-start">Name</label>
+          <label className="text-green-900 text-xl float-start">Tên</label>
           <Input
             type="text"
-            value={wareName}
-            onChange={(e) => setwareName(e.target.value)}
+            value={manuName}
+            onChange={(e) => setName(e.target.value)}
             className="border-solid border-2 border-green-500 rounded-lg w-full"
           />
         </div>
         <div className="mx-4 mb-2">
-          <label className="text-green-900 text-xl float-start">Address</label>
+          <label className="text-green-900 text-xl float-start">Địa chỉ </label>
           <Input
             type="text"
             value={address}
@@ -169,7 +173,7 @@ const getData = () => {
           />
         </div>
         <div className="mx-4 mb-2">
-          <label className="text-green-900 text-xl float-start">Tel</label>
+          <label className="text-green-900 text-xl float-start">Số điện thoại </label>
           <Input
             type="text"
             value={tel}
@@ -178,7 +182,7 @@ const getData = () => {
           />
         </div>
         <div className="mx-4 mb-2">
-          <label className="text-green-900 text-xl float-start">Email</label>
+          <label className="text-green-900 text-xl float-start">Email </label>
           <Input
             type="text"
             value={email}
@@ -186,6 +190,16 @@ const getData = () => {
             className="border-solid border-2 border-green-500 rounded-lg w-full"
           />
         </div>
+        <div className="mx-4 mb-2">
+          <label className="text-green-900 text-xl float-start">Website</label>
+          <Input
+            type="text"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            className="border-solid border-2 border-green-500 rounded-lg w-full"
+          />
+        </div>
+       
         <div className="mx-2 float-start">
           <Button
             primary
@@ -219,4 +233,4 @@ const getData = () => {
   );
 };
 
-export default Warehouse;
+export default Manufacturer;
