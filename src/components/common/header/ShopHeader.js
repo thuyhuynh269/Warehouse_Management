@@ -5,6 +5,8 @@ function Header() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
 
   return (
+    
+    
     <div className="flex items-center justify-between p-4 bg-white shadow-md border-b">
       {/* Left Section: Empty for now */}
       <div className="flex items-center space-x-3">
