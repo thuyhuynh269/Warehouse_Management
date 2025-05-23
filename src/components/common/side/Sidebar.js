@@ -7,7 +7,7 @@ const Sidebar = () => {
     { label: "Nhập hàng", icon: "📥", path: "/import" },
     { label: "Xuất hàng", icon: "📤", path: "/export" },
     { label: "Kho hàng", icon: "📦", path: "/warehouse" },
-    { label: "Sản phẩm", icon: "🛍️", path: "/products" },
+    { label: "Sản phẩm", icon: "🛍️", path: "/product" },
     { label: "Danh mục", icon: "📋", path: "/category" },
     { label: "Nhà sản xuất", icon: "🏭", path: "/manufacturers" },
     { label: "Nhân viên", icon: "👥", path: "/employees" },
