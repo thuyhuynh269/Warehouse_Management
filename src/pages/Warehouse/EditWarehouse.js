@@ -19,21 +19,20 @@ const EditWarehouseModal = ({ warehouse, onClose, onSuccess }) => {
   }, [warehouse]);
 
   const handleSubmit = async () => {
-    if (!wareName || !address || !tel || !email) {
+    if (!wareName || !address || !tel || !email ) {
       toast.error("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
 
     try {
-      const response = await request.put(`warehouse/${warehouse.id}`, {
-        id: warehouse.id,
+      await request.put(`warehouse/${warehouse.id}`, {
+        ...warehouse,
         wareName,
         address,
         tel,
-        email,
-        isActive: warehouse.isActive
+        email
       });
-      toast.success(response.data.message || "Cập nhật kho thành công!");
+      toast.success("Cập nhật kho thành công!");
       onSuccess?.();
       onClose();
     } catch (error) {
@@ -47,35 +46,63 @@ const EditWarehouseModal = ({ warehouse, onClose, onSuccess }) => {
         <h2 className="text-2xl font-semibold text-green-800 mb-4">
           Sửa thông tin kho
         </h2>
+        
         <div className="space-y-4">
-          <Input
-            placeholder="Tên kho"
-            value={wareName}
-            onChange={(e) => setWareName(e.target.value)}
-          />
-          <Input
-            placeholder="Địa chỉ"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
-          <Input
-            placeholder="Số điện thoại"
-            value={tel}
-            onChange={(e) => setTel(e.target.value)}
-          />
-          <Input
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tên kho
+            </label>
+            <Input
+              value={wareName}
+              onChange={(e) => setWareName(e.target.value)}
+              className="w-full"
+              placeholder="Nhập tên kho"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Địa chỉ
+            </label>
+            <Input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="w-full"
+              placeholder="Nhập địa chỉ"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Số điện thoại
+            </label>
+            <Input
+              value={tel}
+              onChange={(e) => setTel(e.target.value)}
+              className="w-full"
+              placeholder="Nhập số điện thoại"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full"
+              placeholder="Nhập email"
+            />
+          </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-end gap-4 mt-6">
           <Button
             onClick={handleSubmit}
             className="bg-blue-600 text-white hover:bg-blue-700"
           >
-            Lưu
+            Lưu thay đổi
           </Button>
           <Button
             onClick={onClose}

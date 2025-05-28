@@ -5,12 +5,16 @@ import axios from "axios";
 //     return getTokenFromLocalStorage();
 // };
 
+// const request = axios.create({
+//     baseURL: 'https://tough-crisp-malamute.ngrok-free.app/api/',
+//     // headers: {
+//     //     'Authorization': getToken() ? `Bearer ${getToken()}` : ''
+//     // },
+//     withCredentials: true, 
+// })
 const request = axios.create({
     baseURL: 'http://26.139.159.129:5024/api/',
-    // headers: {
-    //     'Authorization': getToken() ? `Bearer ${getToken()}` : ''
-    // },
-    withCredentials: true, 
+    withCredentials: true,
 })
 
 request.interceptors.response.use(

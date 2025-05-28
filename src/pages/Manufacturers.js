@@ -116,7 +116,7 @@ const Manufacturer  = () => {
 
   return (
     <>
-    <h1 className="font-bold text-3xl text-green-800 mb-8">Danh sách nhà sản xuấtxuất</h1>
+    <h1 className="font-bold text-3xl text-green-800 mb-8">Danh sách nhà sản xuất</h1>
     <div className="grid grid-cols-1 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
       <Card >
         <CardContent style={{ height: "80%", width: "100%" }}>
