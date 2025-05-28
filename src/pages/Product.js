@@ -4,9 +4,6 @@ import { toast } from "react-toastify";
 import { Card, CardContent, Select, MenuItem, InputLabel, InputAdornment, Paper, Typography, Box, Grid, Modal, IconButton, useTheme, useMediaQuery } from "@mui/material";
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 
 const Product = () => {
   const theme = useTheme();

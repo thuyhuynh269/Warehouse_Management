@@ -7,9 +7,11 @@ import { Button } from "../../components/ui";
 import Switch from "@mui/material/Switch";
 import AddWarehouseModal from "../Warehouse/AddWarehouse";
 import EditWarehouseModal from "../Warehouse/EditWarehouse";
-import DetailWarehouseModal from "../Warehouse/DetailWarehouse";
+import { useNavigate } from "react-router-dom";
 
 const Warehouse = () => {
+  const navigate = useNavigate();
+  
   const columns = [
     { field: "id", headerName: "ID", width: 50 },
     { field: "wareName", headerName: "Tên kho", width: 150 },
@@ -55,10 +57,7 @@ const Warehouse = () => {
         <div className="flex gap-2">
           {/* Nút Xem chi tiết */}
           <button
-            onClick={() => {
-              setSelectedWarehouse(params.row);
-              setIsDetailModalOpen(true);
-            }}
+            onClick={() => navigate(`/warehouse/${params.row.id}`)}
             className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700"
           >
             <svg
@@ -97,17 +96,17 @@ const Warehouse = () => {
       ),
     },
   ];
-        const [selectedRow, setSelectedRow] = useState(null);
-        const [rows, setRows] = useState([]);
-        const [name, setName] = useState("");
-        const [tel, setTel] = useState("");
-        const [email, setEmail] = useState("");
-        const [address, setAddress] = useState("");
-        const lable = useRef();
+
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [rows, setRows] = useState([]);
+  const [name, setName] = useState("");
+  const [tel, setTel] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const lable = useRef();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const getData = () => {
     request
@@ -121,46 +120,6 @@ const Warehouse = () => {
       });
   };
   useEffect(getData, []);
-
-    const handleDeleteData = (id) => {
-    request
-      .delete(`warehouse/${selectedRow}`)
-      .then((response) => {
-        getData();
-        setName("");
-        setTel("");
-        setEmail("");
-        setAddress("");
-        setSelectedRow(null);
-        lable.current.innerText = "";
-        toast.success(response.data.message);
-      })
-      .catch((error) => {
-        toast.error(error.message);
-      });
-  };
-  
-
-  // const handleAddData = () => {
-  //   request
-  //     .post("warehouse", { wareName: name, address, tel, email, isActive: true })
-  //     .then((response) => {
-  //       getData();
-  //       setName("");
-  //       setAddress("");
-  //       setTel("");
-  //       setEmail("");
-  //       toast.success(response.data.message);
-  //     })
-  //     .catch((error) => {
-  //       toast.error(error.message);
-  //     });
-  // };
-
-  // const deselect = () => {
-  //   setSelectedRow(null);
-  //   lable.current.innerText = "";
-  // };
 
   const handleUpdateData = (params) => {
     setSelectedWarehouse(params.row);
@@ -212,16 +171,6 @@ const Warehouse = () => {
             setSelectedWarehouse(null);
           }}
           onSuccess={getData}
-        />
-      )}
-
-      {isDetailModalOpen && selectedWarehouse && (
-        <DetailWarehouseModal
-          warehouse={selectedWarehouse}
-          onClose={() => {
-            setIsDetailModalOpen(false);
-            setSelectedWarehouse(null);
-          }}
         />
       )}
     </>
