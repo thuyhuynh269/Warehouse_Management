@@ -1,76 +1,154 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { DataGrid } from '@mui/x-data-grid';
 import { toast } from "react-toastify";
-import { Card, CardContent, Select, MenuItem, InputLabel, InputAdornment, Paper, Typography, Box, Grid, Modal, IconButton, useTheme, useMediaQuery } from "@mui/material";
+import { Card, CardContent, Switch, Select, MenuItem, Paper, Typography, Box } from "@mui/material";
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 
 const Product = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
-  
-  const [openModal, setOpenModal] = useState(false);
-  const [modalType, setModalType] = useState(''); // 'add' or 'edit'
-  
+  const [rows, setRows] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [manufacturers, setManufacturers] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [formData, setFormData] = useState({
+    productName: "",
+    image: "",
+    unit: "",
+    expiry: "",
+    selectedCategory: "",
+    selectedManufacturer: "",
+    isActive: true
+  });
+
   const columns = [
     { field: "id", headerName: "ID", width: 50 },
     { field: "proName", headerName: "Tên sản phẩm", width: 200, flex: 1 },
-    { field: "image", headerName: "Hình ảnh", width: 100, hide: isMobile },
-    { field: "unit", headerName: "Đơn vị", width: 100, hide: isTablet },
-    { field: "expiry", headerName: "Hạn sử dụng", width: 100, hide: isTablet },
-    { field: "categoryName", headerName: "Danh mục", width: 150, hide: isMobile },
-    { field: "manufacturerName", headerName: "Nhà sản xuất", width: 150, hide: isMobile },
+    {
+      field: "image",
+      headerName: "Hình ảnh",
+      width: 100,
+      renderCell: (params) => (
+        params.row.image ? (
+          <img
+            src={params.row.image}
+            alt={params.row.proName}
+            style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 6 }}
+          />
+        ) : (
+          <span className="text-gray-400 italic">Không có ảnh</span>
+        )
+      )
+    },
+    { field: "unit", headerName: "Đơn vị", width: 100 },
+    { field: "expiry", headerName: "Hạn sử dụng", width: 100 },
+    { field: "categoryName", headerName: "Danh mục", width: 150 },
+    { field: "manufacturerName", headerName: "Nhà sản xuất", width: 150 },
+    {
+      field: "isActive",
+      headerName: "Trạng thái",
+      width: 100,
+      renderCell: (params) => {
+        const handleToggle = () => {
+          const newStatus = !params.row.isActive;
+          request
+            .put(`product/${params.row.id}`, {
+              ...params.row,
+              isActive: newStatus,
+            })
+            .then(() => {
+              toast.success("Cập nhật trạng thái thành công!");
+              getData();
+            })
+            .catch((error) => {
+              toast.error(error.message);
+            });
+        };
+
+        return (
+          <Switch
+            checked={params.row.isActive}
+            onChange={handleToggle}
+            color="primary"
+            inputProps={{ "aria-label": "status toggle" }}
+          />
+        );
+      },
+    },
     {
       field: "actions",
-      headerName: "Thao tác",
-      width: 120,
+      headerName: "Hành động",
+      width: 150,
       renderCell: (params) => (
-        <Box className="flex gap-2">
-          <Button
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEdit(params.row);
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              setSelectedProduct(params.row);
+              setIsDetailModalOpen(true);
             }}
-            className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-md text-sm"
+            className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700"
           >
-            {isMobile ? "Sửa" : "Sửa"}
-          </Button>
-          <Button
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(params.row.id);
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => {
+              const category = categories.find(
+                c => c.name.trim().toLowerCase() === params.row.categoryName.trim().toLowerCase()
+              );
+              const manufacturer = manufacturers.find(
+                m => m.name.trim().toLowerCase() === params.row.manufacturerName.trim().toLowerCase()
+              );
+
+              setSelectedProduct(params.row);
+              setFormData({
+                productName: params.row.proName,
+                image: params.row.image,
+                unit: params.row.unit,
+                expiry: params.row.expiry,
+                selectedCategory: category ? String(category.id) : "",
+                selectedManufacturer: manufacturer ? String(manufacturer.id) : "",
+                isActive: params.row.isActive
+              });
+              setIsEditModalOpen(true);
             }}
-            className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md text-sm"
+            className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center hover:bg-cyan-700"
           >
-            {isMobile ? "Xóa" : "Xóa"}
-          </Button>
-        </Box>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+              strokeWidth="2"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+            </svg>
+          </button>
+        </div>
       ),
     },
   ];
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [rows, setRows] = useState([]);
-  const [productName, setProductName] = useState("");
-  const [image, setImage] = useState("");
-  const [unit, setUnit] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [categories, setCategories] = useState([]);
-  const [manufacturers, setManufacturers] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedManufacturer, setSelectedManufacturer] = useState("");
-  const lable = useRef();
 
   const getData = () => {
     request
       .get("product")
       .then((response) => {
-        console.log(response);
         setRows(response.data);
       })
       .catch((error) => {
@@ -93,13 +171,11 @@ const Product = () => {
     request
       .get("Manufacturers?isActive=true")
       .then((response) => {
-        console.log("Raw Manufacturers data:", response.data);
         if (response && response.data) {
           const formattedManufacturers = response.data.map(manu => ({
             id: manu.id,
             name: manu.manuName
           }));
-          console.log("Formatted Manufacturers:", formattedManufacturers);
           setManufacturers(formattedManufacturers);
         }
       })
@@ -114,353 +190,314 @@ const Product = () => {
     getManufacturers();
   }, []);
 
-  const handleChangeProductName = (event) => {
-    setProductName(event.target.value);
-  };
-  const handleChangeImage = (event) => {
-    setImage(event.target.value);
-  };
-  const handleChangeUnit = (event) => {
-    setUnit(event.target.value);
-  };
-  const handleChangeExpiry = (event) => {
-    setExpiry(event.target.value);
-  };
-  const handleChangeCategory = (event) => {
-    setSelectedCategory(event.target.value);
-    console.log('Selected category id:', event.target.value);
-  };
-  const handleChangeManufacturer = (event) => {
-    setSelectedManufacturer(event.target.value);
-    console.log('Selected Manufacturer:', event.target.value);
-  };
-
-  const handleRowClick = (params) => {
-    const selectedName = params.row.id === selectedRow ? "" : params.row.proName;
-    console.log(params);
-    setSelectedRow(params.row.id === selectedRow ? null : params.row.id);
-    setProductName(params.row.proName);
-    setImage(params.row.image);
-    setUnit(params.row.unit);
-    setExpiry(params.row.expiry);
-    setSelectedCategory(params.row.categoryId || "");
-    setSelectedManufacturer(params.row.manufacturerId || "");
-    lable.current.innerText = selectedName;
-  };
-
-  const handleAddData = () => {
-    const addData = {
-      manuId: Number(selectedManufacturer),
-      cateId: Number(selectedCategory),
-      proName: productName,
-      image: image,
-      unit: unit,
-      expiry: Number(expiry)
-    };
-
-    console.log('Add data:', addData); // For debugging
-
-    request
-      .post("product", addData)
-      .then((response) => {
-        getData();
-        setImage("");
-        setProductName("");
-        setUnit("");
-        setExpiry("");
-        setSelectedCategory("");
-        setSelectedManufacturer("");
-        toast.success(response.data.message);
-      })
-      .catch((error) => {
-        console.error('Add error:', error.response?.data || error.message);
-        toast.error(error.response?.data?.message || error.message);
-      });
-  };
-
-  const deselect = () => {
-    setSelectedRow(null);
-    lable.current.innerText = "";
-  };
-
-  const handleUpdateData = () => {
-    const updateData = {
-      proName: productName || "",
-      image: image || "",
-      unit: unit || "",
-      expiry: Number(expiry) || 0,
-      cateId: Number(selectedCategory) || 0,
-      manuId: Number(selectedManufacturer) || 0,
-      isActive: true
-    };
-    console.log("Update data:", updateData);
-    request
-      .put(`product/${selectedRow}`, updateData)
-      .then((response) => {
-        getData();
-        setImage("");
-        setProductName("");
-        setUnit("");
-        setExpiry("");
-        setSelectedCategory("");
-        setSelectedManufacturer("");
-        setSelectedRow(null);
-        lable.current.innerText = "";
-        toast.success(response.data.message);
-      })
-      .catch((error) => {
-        toast.error(error.message);
-      });
-  };
-
-  const handleDeleteData = () => {
-    request
-      .delete(`products/${selectedRow}`)
-      .then((response) => {
-        getData();
-        setImage("");
-        setProductName("");
-        setUnit("");
-        setExpiry("");
-        setSelectedCategory("");
-        setSelectedManufacturer("");
-        setSelectedRow(null);
-        lable.current.innerText = "";
-        toast.success(response.data.message);
-      })
-      .catch((error) => {
-        toast.error(error);
-      });
-  };
-
-  const handleAdd = () => {
-    setModalType('add');
-    setOpenModal(true);
-    // Reset form
-    setProductName("");
-    setImage("");
-    setUnit("");
-    setExpiry("");
-    setSelectedCategory("");
-    setSelectedManufacturer("");
-  };
-
-  const handleEdit = (row) => {
-    console.log('row:', row);
-    console.log('categories:', categories);
-    console.log('manufacturers:', manufacturers);
-
-    if (!categories.length || !manufacturers.length) {
-      toast.info("Đang tải dữ liệu danh mục hoặc nhà sản xuất...");
+  const handleSubmit = async () => {
+    if (!formData.productName || !formData.unit || !formData.expiry || !formData.selectedCategory || !formData.selectedManufacturer) {
+      toast.error("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
 
-    // Tìm id của category và manufacturer dựa vào name
-    const foundCategory = categories.find(c => c.name === row.categoryName);
-    const foundManufacturer = manufacturers.find(m => m.name === row.manufacturerName);
+    try {
+      if (!isEditModalOpen) {
+        const data = {
+          manuId: Number(formData.selectedManufacturer),
+          cateId: Number(formData.selectedCategory),
+          proName: formData.productName,
+          image: formData.image,
+          unit: formData.unit,
+          expiry: Number(formData.expiry),
+          isActive: true
+        };
+        const response = await request.post("product", data);
+        toast.success(response.data.message || "Thêm sản phẩm thành công!");
+        getData();
+        handleCloseModal();
+        return;
+      }
 
-    setModalType('edit');
-    setOpenModal(true);
-    setSelectedRow(row.id);
-    setProductName(row.proName);
-    setImage(row.image);
-    setUnit(row.unit);
-    setExpiry(row.expiry);
-    setSelectedCategory(foundCategory ? String(foundCategory.id) : "");
-    setSelectedManufacturer(foundManufacturer ? String(foundManufacturer.id) : "");
-  };
+      const data = {
+        manuId: Number(formData.selectedManufacturer),
+        cateId: Number(formData.selectedCategory),
+        proName: formData.productName,
+        image: formData.image,
+        unit: formData.unit,
+        expiry: Number(formData.expiry),
+        quantity: selectedProduct?.quantity,
+        createdDate: selectedProduct?.createdDate,
+        isActive: isEditModalOpen ? formData.isActive : true
+      };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-      request
-        .delete(`products/${id}`)
-        .then((response) => {
-          getData();
-          toast.success(response.data.message);
-        })
-        .catch((error) => {
-          toast.error(error.message);
+      if (isEditModalOpen && selectedProduct) {
+        const response = await request.put(`product/${selectedProduct.id}`, {
+          ...data,
+          id: selectedProduct.id
         });
+        toast.success(response.data.message || "Cập nhật sản phẩm thành công!");
+      }
+      
+      getData();
+      handleCloseModal();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Có lỗi xảy ra!");
     }
   };
 
   const handleCloseModal = () => {
-    setOpenModal(false);
-    setSelectedRow(null);
-    // Reset form
-    setProductName("");
-    setImage("");
-    setUnit("");
-    setExpiry("");
-    setSelectedCategory("");
-    setSelectedManufacturer("");
+    setIsModalOpen(false);
+    setIsEditModalOpen(false);
+    setIsDetailModalOpen(false);
+    setSelectedProduct(null);
+    setFormData({
+      productName: "",
+      image: "",
+      unit: "",
+      expiry: "",
+      selectedCategory: "",
+      selectedManufacturer: "",
+      isActive: true
+    });
   };
 
-  const handleSubmit = () => {
-    if (modalType === 'add') {
-      handleAddData();
-    } else {
-      handleUpdateData();
-    }
-    handleCloseModal();
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
-    <Box className="p-4 md:p-6 lg:p-8 max-w-[95%] md:max-w-[90%] lg:max-w-7xl mx-auto bg-gray-50 min-h-screen">
-      <Box className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-8">
-        <Typography variant="h4" className="font-bold text-gray-800 text-2xl md:text-3xl lg:text-4xl">
-          Quản lý sản phẩm
-        </Typography>
+    <>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="font-bold text-3xl text-green-800">Danh sách sản phẩm</h1>
         <Button
-          primary
-          onClick={handleAdd}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 md:px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 w-full md:w-auto"
-        >
-          + Thêm sản phẩm
-        </Button>
-      </Box>
-      
-      <Paper elevation={3} className="p-3 md:p-4 lg:p-6 rounded-xl shadow-lg">
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          pageSize={5}
-          className="max-h-[500px] md:max-h-[600px]"
-          sx={{
-            '& .MuiDataGrid-cell:hover': {
-              backgroundColor: '#f0f9f0',
-            },
-            '& .MuiDataGrid-row.Mui-selected': {
-              backgroundColor: '#e8f5e9',
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: '#f8fafc',
-              color: '#1e293b',
-              fontWeight: 'bold',
-            },
-            '& .MuiDataGrid-cell': {
-              borderColor: '#e2e8f0',
-            },
-            '& .MuiDataGrid-footerContainer': {
-              borderTop: '1px solid #e2e8f0',
-            },
+          onClick={() => {
+            setFormData({
+              productName: "",
+              image: "",
+              unit: "",
+              expiry: "",
+              selectedCategory: "",
+              selectedManufacturer: "",
+              isActive: true
+            });
+            setIsModalOpen(true);
           }}
-        />
-      </Paper>
+          className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14" />
+            <path d="M12 5v14" />
+          </svg>
+          Thêm mới
+        </Button>
+      </div>
 
-      {/* Modal Form */}
-      <Modal
-        open={openModal}
-        onClose={handleCloseModal}
-        className="flex items-center justify-center p-4"
-      >
-        <Paper className="w-full max-w-2xl p-4 md:p-6 lg:p-8 m-4 rounded-xl shadow-2xl max-h-[90vh] overflow-y-auto">
-          <Typography variant="h5" className="text-gray-800 font-bold mb-4 md:mb-6">
-            {modalType === 'add' ? 'Thêm sản phẩm mới' : 'Chỉnh sửa sản phẩm'}
-          </Typography>
-          
-          <Box className="space-y-3 md:space-y-4">
-            <Box>
-              <Typography className="text-gray-700 font-medium mb-2">Tên sản phẩm</Typography>
+      <div className="grid grid-cols-3 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
+        <Card className="col-span-3">
+          <CardContent style={{ height: "100%", width: "100%" }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              pageSize={5}
+              className="max-h-4/5"
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Add/Edit Modal */}
+      {(isModalOpen || isEditModalOpen) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+            <h2 className="text-2xl font-semibold text-green-800 mb-4">
+              {isEditModalOpen ? 'Sửa thông tin sản phẩm' : 'Thêm sản phẩm mới'}
+            </h2>
+            <div className="space-y-4">
               <Input
-                type="text"
-                value={productName}
-                onChange={handleChangeProductName}
-                className="w-full border border-gray-200 rounded-lg focus:border-green-500 focus:ring-1 focus:ring-green-500 px-3 md:px-4 py-2"
-                placeholder="Nhập tên sản phẩm"
+                name="productName"
+                placeholder="Tên sản phẩm"
+                value={formData.productName}
+                onChange={handleInputChange}
               />
-            </Box>
-
-            <Box>
-              <Typography className="text-gray-700 font-medium mb-2">Danh mục</Typography>
-              <Select
-                value={selectedCategory}
-                onChange={handleChangeCategory}
-                className="w-full border border-gray-200 rounded-lg"
-                displayEmpty
-              >
-                <MenuItem value="">
-                  <em>Chọn danh mục</em>
-                </MenuItem>
-                {categories.map((category) => (
-                  <MenuItem key={category.id} value={String(category.id)}>
-                    {category.name}
+              
+              <div>
+                <Select
+                  name="selectedCategory"
+                  value={formData.selectedCategory}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-200 rounded-lg"
+                  displayEmpty
+                >
+                  <MenuItem value="">
+                    <em>Chọn danh mục</em>
                   </MenuItem>
-                ))}
-              </Select>
-            </Box>
+                  {categories.map((category) => (
+                    <MenuItem key={category.id} value={String(category.id)}>
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </div>
 
-            <Box>
-              <Typography className="text-gray-700 font-medium mb-2">Nhà sản xuất</Typography>
-              <Select
-                value={selectedManufacturer}
-                onChange={handleChangeManufacturer}
-                className="w-full border border-gray-200 rounded-lg"
-                displayEmpty
-              >
-                <MenuItem value="">
-                  <em>Chọn nhà sản xuất</em>
-                </MenuItem>
-                {manufacturers.map((manufacturer) => (
-                  <MenuItem key={manufacturer.id} value={String(manufacturer.id)}>
-                    {manufacturer.name}
+              <div>
+                <Select
+                  name="selectedManufacturer"
+                  value={formData.selectedManufacturer}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-200 rounded-lg"
+                  displayEmpty
+                >
+                  <MenuItem value="">
+                    <em>Chọn nhà sản xuất</em>
                   </MenuItem>
-                ))}
-              </Select>
-            </Box>
+                  {manufacturers.map((manufacturer) => (
+                    <MenuItem key={manufacturer.id} value={String(manufacturer.id)}>
+                      {manufacturer.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </div>
 
-            <Box>
-              <Typography className="text-gray-700 font-medium mb-2">Ảnh</Typography>
               <Input
-                type="text"
-                value={image}
-                onChange={handleChangeImage}
-                className="w-full border border-gray-200 rounded-lg focus:border-green-500 focus:ring-1 focus:ring-green-500 px-3 md:px-4 py-2"
-                placeholder="Nhập đường dẫn ảnh"
+                name="image"
+                placeholder="Đường dẫn ảnh"
+                value={formData.image}
+                onChange={handleInputChange}
               />
-            </Box>
 
-            <Box>
-              <Typography className="text-gray-700 font-medium mb-2">Đơn vị</Typography>
               <Input
-                type="text"
-                value={unit}
-                onChange={handleChangeUnit}
-                className="w-full border border-gray-200 rounded-lg focus:border-green-500 focus:ring-1 focus:ring-green-500 px-3 md:px-4 py-2"
-                placeholder="Nhập đơn vị"
+                name="unit"
+                placeholder="Đơn vị"
+                value={formData.unit}
+                onChange={handleInputChange}
               />
-            </Box>
 
-            <Box>
-              <Typography className="text-gray-700 font-medium mb-2">Hạn sử dụng</Typography>
               <Input
-                type="text"
-                value={expiry}
-                onChange={handleChangeExpiry}
-                className="w-full border border-gray-200 rounded-lg focus:border-green-500 focus:ring-1 focus:ring-green-500 px-3 md:px-4 py-2"
-                placeholder="Nhập hạn sử dụng"
+                name="expiry"
+                placeholder="Hạn sử dụng (tháng)"
+                type="number"
+                value={formData.expiry}
+                onChange={handleInputChange}
               />
-            </Box>
 
-            <Box className="flex flex-col md:flex-row justify-end gap-3 pt-4 md:pt-6">
+              <Switch
+                checked={formData.isActive}
+                onChange={e => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                color="primary"
+                inputProps={{ "aria-label": "status toggle" }}
+              />
+              <span>{formData.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}</span>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                onClick={handleSubmit}
+                className="bg-blue-600 text-white hover:bg-blue-700"
+              >
+                {isEditModalOpen ? 'Cập nhật' : 'Thêm mới'}
+              </Button>
               <Button
                 onClick={handleCloseModal}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 md:px-6 py-2 rounded-lg transition-colors duration-200 w-full md:w-auto"
+                className="bg-gray-300 text-black hover:bg-gray-400"
               >
                 Hủy
               </Button>
+            </div>
+
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-lg font-bold"
+              onClick={handleCloseModal}
+              aria-label="Close modal"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {isDetailModalOpen && selectedProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div
+            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative"
+            style={{ maxWidth: '400px', maxHeight: '90vh', overflowY: 'auto' }}
+          >
+            <h2 className="text-2xl font-semibold text-green-800 mb-4">
+              Chi tiết sản phẩm
+            </h2>
+            
+            <div className="space-y-4">
+              <div className="border-b pb-2">
+                <label className="text-gray-600 text-sm">Tên sản phẩm:</label>
+                <p className="text-gray-900 font-medium">{selectedProduct.proName}</p>
+              </div>
+              
+              <div className="border-b pb-2">
+                <label className="text-gray-600 text-sm">Danh mục:</label>
+                <p className="text-gray-900 font-medium">{selectedProduct.categoryName}</p>
+              </div>
+              
+              <div className="border-b pb-2">
+                <label className="text-gray-600 text-sm">Nhà sản xuất:</label>
+                <p className="text-gray-900 font-medium">{selectedProduct.manufacturerName}</p>
+              </div>
+              
+              <div className="border-b pb-2">
+                <label className="text-gray-600 text-sm">Đơn vị:</label>
+                <p className="text-gray-900 font-medium">{selectedProduct.unit}</p>
+              </div>
+
+              <div className="border-b pb-2">
+                <label className="text-gray-600 text-sm">Hạn sử dụng:</label>
+                <p className="text-gray-900 font-medium">{selectedProduct.expiry} tháng</p>
+              </div>
+
+              <div className="border-b pb-2">
+                <label className="text-gray-600 text-sm">Hình ảnh:</label>
+                {selectedProduct.image && (
+                  <img
+                    src={selectedProduct.image}
+                    alt={selectedProduct.proName}
+                    style={{
+                      maxWidth: '250px',
+                      width: '100%',
+                      height: 'auto',
+                      borderRadius: '12px',
+                      display: 'block',
+                      margin: '0 auto'
+                    }}
+                  />
+                )}
+              </div>
+
+              <div className="border-b pb-2">
+                <label className="text-gray-600 text-sm">Trạng thái:</label>
+                <p className={`font-medium ${selectedProduct.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                  {selectedProduct.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6">
               <Button
-                primary
-                onClick={handleSubmit}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 md:px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 w-full md:w-auto"
+                onClick={handleCloseModal}
+                className="bg-gray-300 text-black hover:bg-gray-400"
               >
-                {modalType === 'add' ? 'Thêm mới' : 'Cập nhật'}
+                Đóng
               </Button>
-            </Box>
-          </Box>
-        </Paper>
-      </Modal>
-    </Box>
+            </div>
+
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-lg font-bold"
+              onClick={handleCloseModal}
+              aria-label="Close modal"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

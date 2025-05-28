@@ -8,6 +8,7 @@ import Category from './pages/Category';
 import Manufacturer from './pages/Manufacturers';
 import Product from './pages/Product'; 
 import AddWarehouse from "./pages/Warehouse/AddWarehouse"; // Import the AddWarehouse component
+import Export from './pages/Export'; // Add Export import
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/manufacturers" element={<Manufacturer/>} />
             <Route path="/product" element={<Product/>} />
             <Route path="/add-warehouse" element={<AddWarehouse />} /> {/* Add the route for AddWarehouse */}
+            <Route path="/export" element={<Export />} /> {/* Add Export route */}
           </Routes> {/* Render the Warehouse component here */}
         </div>
       </div>
