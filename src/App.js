@@ -6,7 +6,7 @@ import Header from './components/common/header/ShopHeader';
 import Warehouse from './pages/Warehouse'; 
 import Category from './pages/Category'; 
 import Manufacturer from './pages/Manufacturers'; // Import the Manufacturer component
-
+import Import from "./pages/Import";
 function App() {
   return (
     <BrowserRouter>
@@ -19,6 +19,7 @@ function App() {
             <Route path="/warehouse" element={<Warehouse />} />
             <Route path="/category" element={<Category />} /> 
             <Route path="/manufacturers" element={<Manufacturer/>} />
+            <Route path="/import" element={<Import/>} />
           </Routes> {/* Render the Warehouse component here */}
         </div>
       </div>
