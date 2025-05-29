@@ -5,11 +5,12 @@ const Sidebar = () => {
   const navItems = [
     { label: "Trang chủ", icon: "🏠", path: "/" },
     { label: "Kho hàng", icon: "📦", path: "/warehouse" },
+    { label: "Sản phẩm", icon: "🛍️", path: "/product" },
     { label: "Phiếu nhập", icon: "📥", path: "/import" },
     { label: "Phiếu xuất", icon: "📤", path: "/export" },
     { label: "Danh mục", icon: "📋", path: "/category" },
     { label: "Nhà sản xuất", icon: "🏭", path: "/manufacturers" },
-    { label: "Nhân viên", icon: "👥", path: "/employees" },
+    { label: "Nhân viên", icon: "👥", path: "/employee" },
     { label: "Thống kê", icon: "📊", path: "/statistics" },
   ];
 
