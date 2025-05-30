@@ -11,6 +11,7 @@ import AddWarehouse from "./pages/Warehouse/AddWarehouse"; // Import the AddWare
 import Export from './pages/Export'; 
 import EditWarehouse from "./pages/Warehouse/EditWarehouse";
 import DetailWarehouse from "./pages/Warehouse/DetailWarehouse";
+import Employee from "./pages/Employee";
 import Login from "./pages/Login";
 
 function App() {
@@ -34,7 +35,7 @@ function App() {
             <Route path ="/edit-warehouse/:id" element={<EditWarehouse />} />
             <Route path="/detail-warehouse/:id" element={<DetailWarehouse />} />
             <Route path="/detail-warehouse/:id" element={<DetailWarehouse />}/>
-            {/* <Route path="/login" element={<Login/>} /> */}
+            <Route path="/login" element={<Login/>} />
             
             
             {/* Add more routes as needed */}
