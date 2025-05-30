@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { DataGrid } from '@mui/x-data-grid';
-
 import { toast } from "react-toastify";
-
-import { Card, CardContent, Select, MenuItem, InputLabel } from "@mui/material";
+import { Card, CardContent } from "@mui/material";
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
 
@@ -35,7 +33,7 @@ const Category = () => {
 
   const handleChange = (event) => {
     setName(event.target.value);
-  };  
+  };
   const handleChangeImage = (event) => {
     setImage(event.target.value);
   };
@@ -69,7 +67,7 @@ const Category = () => {
 
   const handleUpdateData = () => {
     request
-      .put(`categories/${selectedRow}`, { id: selectedRow, name,image })
+      .put(`categories/${selectedRow}`, { id: selectedRow, name, image })
       .then((response) => {
         getData();
         setImage("");
@@ -101,10 +99,10 @@ const Category = () => {
 
   return (
     <>
-    <h1 className="font-bold text-3xl text-green-800 mb-8">Danh mục sản phẩm</h1>
-    <div className="grid grid-cols-1 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
-      <Card >
-        <CardContent style={{ height: "80%", width: "100%" }}>
+      <h1 className="font-bold text-3xl text-green-800 mb-8">Danh mục sản phẩm</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
+        <Card >
+          <CardContent style={{ height: "80%", width: "100%" }}>
             <DataGrid
               rows={rows}
               columns={columns}
@@ -113,79 +111,79 @@ const Category = () => {
               onRowClick={handleRowClick}
               className="max-h-4/5"
             />
-        </CardContent>
-        <div className="grid grid-cols-4 mx-4 mb-2">
-          <label className="text-green-900 float-start m-auto">Selected:</label>
+          </CardContent>
+          <div className="grid grid-cols-4 mx-4 mb-2">
+            <label className="text-green-900 float-start m-auto">Selected:</label>
 
-          <div className="border-solid border-2 border-grey-500 rounded-lg grid grid-cols-5 col-span-2 w-full">
-            <span
-              className="rounded-l-lg px-1 col-span-4 text-center justify-center m-auto"
-              ref={lable}
-            />
+            <div className="border-solid border-2 border-grey-500 rounded-lg grid grid-cols-5 col-span-2 w-full">
+              <span
+                className="rounded-l-lg px-1 col-span-4 text-center justify-center m-auto"
+                ref={lable}
+              />
+              <Button
+                className="w-auto text-red-500 font-bold bg-gray-100"
+                onClick={deselect}
+                disabled={selectedRow == null}
+              >
+                X
+              </Button>
+            </div>
             <Button
-              className="w-auto text-red-500 font-bold bg-gray-100"
-              onClick={deselect}
-              disabled={selectedRow == null}
+              className=" bg-green-200 float-end m-auto rounded-lg"
+              onClick={getData}
             >
-              X
+              Refresh
             </Button>
           </div>
-          <Button
-            className=" bg-green-200 float-end m-auto rounded-lg"
-            onClick={getData}
-          >
-            Refresh
-          </Button>
-        </div>
-      </Card>
-      <div>
-        <div className="mx-4 mb-2">
-          <label className="text-green-900 text-xl float-start">Name</label>
-          <Input
-            type="text"
-            value={name}
-            onChange={handleChange}
-            className="border-solid border-2 border-green-500 rounded-lg w-full"
-          />
-        </div>
-        <div className="mx-4 mb-2">
-          <label className="text-green-900 text-xl float-start">Image</label>
-          <Input
-            type="text"
-            value={image}
-            onChange={handleChangeImage}
-            className="border-solid border-2 border-green-500 rounded-lg w-full"
-          />
-        </div>
-        <div className="mx-2 float-start">
-          <Button
-            primary
-            onClick={handleAddData}
-            className="rounded-lg mb-2 ml-2"
-          >
-            Add
-          </Button>
-          <Button
-            primary
-            disabled={selectedRow == null}
-            onClick={handleUpdateData}
-            className="rounded-lg float-end disabled:bg-green-300 mb-2 ml-2"
-          >
-            Update
-          </Button>
-        </div>
-        <div className="mx-4 mb-2 ml-2">
-          <Button
-            primary
-            disabled={selectedRow == null}
-            onClick={handleDeleteData}
-            className="rounded-lg float-end bg-red-600 disabled:bg-red-300 hover:bg-red-400 mb-2 ml-2"
-          >
-            Delete
-          </Button>
+        </Card>
+        <div>
+          <div className="mx-4 mb-2">
+            <label className="text-green-900 text-xl float-start">Name</label>
+            <Input
+              type="text"
+              value={name}
+              onChange={handleChange}
+              className="border-solid border-2 border-green-500 rounded-lg w-full"
+            />
+          </div>
+          <div className="mx-4 mb-2">
+            <label className="text-green-900 text-xl float-start">Image</label>
+            <Input
+              type="text"
+              value={image}
+              onChange={handleChangeImage}
+              className="border-solid border-2 border-green-500 rounded-lg w-full"
+            />
+          </div>
+          <div className="mx-2 float-start">
+            <Button
+              primary
+              onClick={handleAddData}
+              className="rounded-lg mb-2 ml-2"
+            >
+              Add
+            </Button>
+            <Button
+              primary
+              disabled={selectedRow == null}
+              onClick={handleUpdateData}
+              className="rounded-lg float-end disabled:bg-green-300 mb-2 ml-2"
+            >
+              Update
+            </Button>
+          </div>
+          <div className="mx-4 mb-2 ml-2">
+            <Button
+              primary
+              disabled={selectedRow == null}
+              onClick={handleDeleteData}
+              className="rounded-lg float-end bg-red-600 disabled:bg-red-300 hover:bg-red-400 mb-2 ml-2"
+            >
+              Delete
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };
