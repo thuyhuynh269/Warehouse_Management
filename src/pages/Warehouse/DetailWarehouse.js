@@ -11,7 +11,6 @@ const DetailWarehouse = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [warehouse, setWarehouse] = useState(null);
-  const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -26,7 +25,7 @@ const DetailWarehouse = () => {
   const columns = [
     { 
       field: "productId", 
-      headerName: "STT", 
+      headerName: "Mã SP", 
       width: 60,
       headerClassName: 'bg-gray-100 text-base'
     },
@@ -54,6 +53,58 @@ const DetailWarehouse = () => {
       headerName: "Số lượng", 
       width: 100,
       headerClassName: 'bg-gray-100 text-base'
+    },
+    { 
+      field: "unit", 
+      headerName: "Đơn vị", 
+      width: 100,
+      headerClassName: 'bg-gray-100 text-base'
+    },
+{
+      field: "actions",
+      headerName: "Hành động",
+      width: 150,
+      renderCell: (params) => (
+        <div className="flex gap-2">
+          {/* Nút Xem chi tiết */}
+          <button
+            onClick={() => navigate(`/detail-warehouse/${params.row.id}`)}
+            className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+
+          {/* Nút Sửa */}
+          <button
+            onClick={() => {}}
+            className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center hover:bg-cyan-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+              strokeWidth="2"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+            </svg>
+          </button>
+        </div>
+      ),
     },
     // {
     //   field: "actions",
@@ -89,9 +140,9 @@ const DetailWarehouse = () => {
           productId: item.productId,
           productName: item.productName,
           quantity: item.quantity,
+          unit: item.unit,
           image: item.image
         }));
-        setProducts(formatted);
         setFilteredProducts(formatted);
         console.log('filter:', formatted);
       } else {
@@ -100,7 +151,7 @@ const DetailWarehouse = () => {
     } catch (error) {
       console.error('Error fetching warehouse details:', error);
       toast.error("Không thể tải thông tin kho");
-      navigate("/warehouse");
+      //navigate("/warehouse");
     }
     finally {
       setLoading(false);
@@ -108,26 +159,7 @@ const DetailWarehouse = () => {
   };
 
   const fetchWarehouseProducts = async () => {
-    //setLoading(true);
-    // try {
-    //   console.log('Fetching warehouse products for ID:', id);
-    //   const response = await request.get(`product`);
-    //   console.log('Warehouse products response:', response.data);
-    //   if (Array.isArray(response.data)) {
-    //     const formatted = response.data.map((item, idx) => ({
-    //       ...item,
-    //       id: idx + 1,
-    //     }));
-    //     setProducts(formatted);
-    //   } else {
-    //     toast.error("Dữ liệu sản phẩm không hợp lệ");
-    //   }
-    // } catch (error) {
-    //   console.error('Error fetching warehouse products:', error);
-    //   toast.error("Không thể tải danh sách sản phẩm");
-    // } finally {
-    //   setLoading(false);
-    // }
+
   };
 
   const fetchAvailableProducts = async () => {
@@ -157,13 +189,6 @@ const DetailWarehouse = () => {
     //fetchWarehouseProducts();
   }, [id]);
 
-  // useEffect(() => {
-  //   const filtered = products.filter(product => 
-  //     product.proName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     product.category?.toLowerCase().includes(searchTerm.toLowerCase())
-  //   );
-  //   setFilteredProducts(filtered);
-  // }, [searchTerm, products]);
 
   const handleAddProduct = (e) => {
     e.preventDefault();
@@ -190,15 +215,13 @@ const DetailWarehouse = () => {
       quantity: parsedQuantity
     };
 
-    console.log("Data being sent:", data);
 
     request
       .post("WarehouseDetail", data)
-
       .then((response) => {
-        console.log("Response data:", response.data);
         if (response && response.data) {
           toast.success("Thêm sản phẩm vào kho thành công");
+          fetchWarehouseDetails();
           fetchWarehouseProducts();
           setIsAddModalOpen(false);
           setSelectedProduct("");
@@ -206,7 +229,6 @@ const DetailWarehouse = () => {
         }
       })
       .catch((error) => {
-        console.log("Error data:", error.response?.data);
         toast.error("Lỗi khi thêm sản phẩm vào kho");
       });
   };
@@ -323,14 +345,12 @@ const DetailWarehouse = () => {
                   value={selectedProduct}
                   onChange={(e) => {
                     const value = parseInt(e.target.value);
-                    console.log("Selected product ID:", value);
                     setSelectedProduct(isNaN(value) ? "" : value);
                   }}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 >
                   <option value="">-- Chọn sản phẩm --</option>
                   {availableProducts.map((p) => (
-                    console.log("Available product:", p),
                     <option key={p.id} value={String(p.id)}>
                       {p.name}
                     </option>

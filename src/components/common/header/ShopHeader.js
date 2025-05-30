@@ -56,26 +56,6 @@ function Header() {
         </div>
       </div>
 
-      {/* Center Section: Search Bar */}
-      <div className="flex-1 max-w-2xl mx-8">
-        <form onSubmit={handleSearch} className="relative">
-          <input
-            type="text"
-            placeholder="Tìm kiếm thông tin..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-          <HiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-          <button
-            type="submit"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
-          >
-            <HiOutlineSearch className="h-5 w-5" />
-          </button>
-        </form>
-      </div>
-
       {/* Right Section: Buttons aligned to the right */}
       <div className="flex items-center justify-end space-x-3">
         <div className="relative">
