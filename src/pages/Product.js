@@ -7,12 +7,14 @@ import { Button, Input } from "../components/ui";
 
 const Product = () => {
   const [rows, setRows] = useState([]);
+  const [filteredRows, setFilteredRows] = useState([]);
   const [categories, setCategories] = useState([]);
   const [manufacturers, setManufacturers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState({
     productName: "",
     image: "",
@@ -145,11 +147,26 @@ const Product = () => {
     },
   ];
 
+  useEffect(() => {
+    // Filter rows whenever searchQuery or rows change
+    const filtered = rows.filter((row) => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        row.proName.toLowerCase().includes(searchLower) ||
+        row.categoryName.toLowerCase().includes(searchLower) ||
+        row.manufacturerName.toLowerCase().includes(searchLower) ||
+        row.unit.toLowerCase().includes(searchLower)
+      );
+    });
+    setFilteredRows(filtered);
+  }, [searchQuery, rows]);
+
   const getData = () => {
     request
       .get("product")
       .then((response) => {
         setRows(response.data);
+        setFilteredRows(response.data);
       })
       .catch((error) => {
         toast.error(error.message);
@@ -269,34 +286,53 @@ const Product = () => {
     <>
       <div className="flex justify-between items-center mb-4">
         <h1 className="font-bold text-3xl text-green-800">Danh sách sản phẩm</h1>
-        <Button
-          onClick={() => {
-            setFormData({
-              productName: "",
-              image: "",
-              unit: "",
-              expiry: "",
-              selectedCategory: "",
-              selectedManufacturer: "",
-              isActive: true
-            });
-            setIsModalOpen(true);
-          }}
-          className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
-          </svg>
-          Thêm mới
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Tìm kiếm sản phẩm..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <Button
+            onClick={() => {
+              setFormData({
+                productName: "",
+                image: "",
+                unit: "",
+                expiry: "",
+                selectedCategory: "",
+                selectedManufacturer: "",
+                isActive: true
+              });
+              setIsModalOpen(true);
+            }}
+            className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
+            </svg>
+            Thêm mới
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
         <Card className="col-span-3">
           <CardContent style={{ height: "100%", width: "100%" }}>
             <DataGrid
-              rows={rows}
+              rows={filteredRows}
               columns={columns}
               pageSize={5}
               className="max-h-4/5"
@@ -374,7 +410,7 @@ const Product = () => {
 
               <Input
                 name="expiry"
-                placeholder="Hạn sử dụng (tháng)"
+                placeholder="Hạn sử dụng (ngày)"
                 type="number"
                 value={formData.expiry}
                 onChange={handleInputChange}
@@ -449,7 +485,7 @@ const Product = () => {
 
               <div className="border-b pb-2">
                 <label className="text-gray-600 text-sm">Hạn sử dụng:</label>
-                <p className="text-gray-900 font-medium">{selectedProduct.expiry} tháng</p>
+                <p className="text-gray-900 font-medium">{selectedProduct.expiry} ngày</p>
               </div>
 
               <div className="border-b pb-2">

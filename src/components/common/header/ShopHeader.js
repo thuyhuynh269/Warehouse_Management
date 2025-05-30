@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { HiOutlineUserCircle, HiOutlineChevronDown, HiOutlineSearch } from 'react-icons/hi';
+import { useState, useEffect } from 'react';
+import { HiOutlineUserCircle, HiOutlineChevronDown } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import request from '../../../utils/request';
+import { getToken, removeToken } from '../../constants';
+import { toast } from 'react-toastify'
 
 function Header() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isWarehouseOpen, setIsWarehouseOpen] = useState(false);
   const [warehouses, setWarehouses] = useState([]);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchWarehouses();
-  }, []);
 
   const fetchWarehouses = async () => {
     try {
@@ -35,11 +32,18 @@ function Header() {
     navigate(`/warehouse/${warehouse.id}`);
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    // Implement search logic here
-    console.log('Searching for:', searchTerm);
-  };
+  const handleLogout = () => {
+    const token = getToken();
+    if (token) {
+      removeToken();
+      toast.success('Logout successful');
+    }
+    window.location.href = '/login';
+  }
+
+  useEffect(() => {
+    fetchWarehouses();
+  }, []);
 
   return (
     <div className="flex items-center justify-between p-4 bg-white shadow-md border-b">
@@ -54,26 +58,6 @@ function Header() {
           <h1 className="font-bold text-2xl text-green-800">Warehouse Management</h1>
           <p className="text-gray-500 text-sm">@phamhien</p>
         </div>
-      </div>
-
-      {/* Center Section: Search Bar */}
-      <div className="flex-1 max-w-2xl mx-8">
-        <form onSubmit={handleSearch} className="relative">
-          <input
-            type="text"
-            placeholder="Tìm kiếm thông tin..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-          <HiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-          <button
-            type="submit"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
-          >
-            <HiOutlineSearch className="h-5 w-5" />
-          </button>
-        </form>
       </div>
 
       {/* Right Section: Buttons aligned to the right */}
@@ -116,7 +100,7 @@ function Header() {
               <div className="p-2 flex items-center hover:bg-blue-600">
                 <HiOutlineUserCircle className="mr-2 w-5 h-5" /> Thông tin tài khoản
               </div>
-              <div className="p-2 flex items-center hover:bg-blue-600 cursor-pointer">
+              <div className="p-2 flex items-center hover:bg-blue-600 cursor-pointer" onClick={handleLogout}>
                 <svg
                   className="mr-2 w-5 h-5"
                   fill="none"

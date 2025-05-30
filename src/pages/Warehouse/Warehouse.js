@@ -1,4 +1,4 @@
-import { useState, useEffect,useRef } from "react";
+import { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { toast } from "react-toastify";
 import { Card, CardContent } from "@mui/material";
@@ -57,7 +57,7 @@ const Warehouse = () => {
         <div className="flex gap-2">
           {/* Nút Xem chi tiết */}
           <button
-            onClick={() => navigate(`/warehouse/${params.row.id}`)}
+            onClick={() => navigate(`/detail-warehouse/${params.row.id}`)}
             className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700"
           >
             <svg
@@ -97,13 +97,8 @@ const Warehouse = () => {
     },
   ];
 
-  const [selectedRow, setSelectedRow] = useState(null);
+ 
   const [rows, setRows] = useState([]);
-  const [name, setName] = useState("");
-  const [tel, setTel] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
-  const lable = useRef();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
@@ -149,7 +144,7 @@ const Warehouse = () => {
               rows={rows}
               columns={columns}
               pageSize={5}
-              onRowClick={(params) => setSelectedRow(params.row.id)}
+              onRowClick={(params) => {}}
               className="max-h-4/5"
             />
           </CardContent>
