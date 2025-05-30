@@ -10,6 +10,7 @@ import Product from './pages/Product';
 import AddWarehouse from "./pages/Warehouse/AddWarehouse";
 import EditWarehouse from "./pages/Warehouse/EditWarehouse";
 import DetailWarehouse from "./pages/Warehouse/DetailWarehouse";
+import Login from "./pages/Login";
 
 function App() {
   return (
@@ -28,7 +29,10 @@ function App() {
             <Route path="/product" element={<Product/>} />
             <Route path="/add-warehouse" element={<AddWarehouse />} />
             <Route path ="/edit-warehouse/:id" element={<EditWarehouse />} />
-            <Route path="/detail-warehouse/:id" element={<DetailWarehouse />} />
+            <Route path="/detail-warehouse/:id" element={<DetailWarehouse />}/>
+            <Route path="/login" element={<Login/>} />
+            
+            
             {/* Add more routes as needed */}
           </Routes>
         </div>
