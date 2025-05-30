@@ -50,6 +50,7 @@
     ]
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "webpack-dev-server": "^5.2.1"
   }
 }

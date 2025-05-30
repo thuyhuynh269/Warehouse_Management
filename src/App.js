@@ -9,15 +9,20 @@ import Manufacturer from './pages/Manufacturers';
 import Product from './pages/Product'; 
 import AddWarehouse from "./pages/Warehouse/AddWarehouse"; // Import the AddWarehouse component
 import Export from './pages/Export'; 
+import { ToastContainer } from "react-toastify";
 import EditWarehouse from "./pages/Warehouse/EditWarehouse";
 import DetailWarehouse from "./pages/Warehouse/DetailWarehouse";
 import Login from "./pages/Login";
+import { getToken } from './components/constants';
 
 function App() {
   return (
     <BrowserRouter>
+      {/* {getToken() && <Header />} */}
       <Header />
       <div className="flex gap-2">
+      <ToastContainer position="bottom-right" />
+        {/* {getToken() && <Sidebar />} */}
         <Sidebar />
         <div className="m-3 w-full text-gray-900 font-semibold">
           <Routes>
@@ -34,10 +39,7 @@ function App() {
             <Route path ="/edit-warehouse/:id" element={<EditWarehouse />} />
             <Route path="/detail-warehouse/:id" element={<DetailWarehouse />} />
             <Route path="/detail-warehouse/:id" element={<DetailWarehouse />}/>
-            <Route path="/login" element={<Login/>} />
-            
-            
-            {/* Add more routes as needed */}
+            <Route path="/login" element={<Login />} />
           </Routes>
         </div>
       </div>
