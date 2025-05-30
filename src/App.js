@@ -34,7 +34,7 @@ function App() {
             <Route path ="/edit-warehouse/:id" element={<EditWarehouse />} />
             <Route path="/detail-warehouse/:id" element={<DetailWarehouse />} />
             <Route path="/detail-warehouse/:id" element={<DetailWarehouse />}/>
-            <Route path="/login" element={<Login/>} />
+            {/* <Route path="/login" element={<Login/>} /> */}
             
             
             {/* Add more routes as needed */}

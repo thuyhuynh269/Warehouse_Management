@@ -22,6 +22,10 @@ const DetailWarehouse = () => {
   const [quantity, setQuantity] = useState("");
   const [productLoading, setProductLoading] = useState(false);
 
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editQuantity, setEditQuantity] = useState("");
+
   const columns = [
     { 
       field: "productId", 
@@ -66,28 +70,9 @@ const DetailWarehouse = () => {
       width: 150,
       renderCell: (params) => (
         <div className="flex gap-2">
-          {/* Nút Xem chi tiết */}
-          <button
-            onClick={() => navigate(`/detail-warehouse/${params.row.id}`)}
-            className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="white"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-
           {/* Nút Sửa */}
           <button
-            onClick={() => {}}
+            onClick={() => handleEdit(params.row)}
             className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center hover:bg-cyan-700"
           >
             <svg
@@ -103,31 +88,27 @@ const DetailWarehouse = () => {
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
             </svg>
           </button>
+
+          {/* Nút Xóa */}
+          <button
+            onClick={() => handleDelete(params.row)}
+            className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center hover:bg-red-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
         </div>
       ),
     },
-    // {
-    //   field: "actions",
-    //   headerName: "Thao tác",
-    //   width: 150,
-    //   headerClassName: 'bg-gray-100 text-base',
-    //   renderCell: (params) => (
-    //     <div className="flex gap-2">
-    //       <Button
-    //         onClick={() => handleEdit(params.row)}
-    //         className="bg-blue-500 text-white hover:bg-blue-600 px-3 py-1.5 rounded-lg text-sm"
-    //       >
-    //         Sửa
-    //       </Button>
-    //       <Button
-    //         onClick={() => handleDelete(params.row.proId)}
-    //         className="bg-red-500 text-white hover:bg-red-600 px-3 py-1.5 rounded-lg text-sm"
-    //       >
-    //         Xóa
-    //       </Button>
-    //     </div>
-    //   ),
-    // },
   ];
 
   const fetchWarehouseDetails = async () => {
@@ -233,26 +214,53 @@ const DetailWarehouse = () => {
       });
   };
 
-  // const handleEdit = (product) => {
-  //   console.log("Edit product:", product);
-  // };
+  const handleEdit = (product) => {
+    setEditingProduct(product);
+    setEditQuantity(product.quantity.toString());
+    setEditModalOpen(true);
+  };
 
-  // const handleDelete = async (proId) => {
-  //   if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi kho?")) {
-  //     try {
-  //       await request.delete(`warehouse/${id}/product/${proId}`);
-  //       toast.success("Xóa sản phẩm thành công");
-  //       fetchWarehouseProducts();
-  //     } catch (error) {
-  //       toast.error("Không thể xóa sản phẩm khỏi kho");
-  //     }
-  //   }
-  // };
+  const handleDelete = async (product) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi kho?")) {
+      try {
+        await request.delete(`WarehouseDetail/${product.productId}/${id}`);
+        toast.success("Xóa sản phẩm thành công");
+        fetchWarehouseDetails();
+      } catch (error) {
+        console.error("Lỗi khi xóa sản phẩm:", error);
+        const errorMessage = error.response?.data?.message || "Không thể xóa sản phẩm khỏi kho";
+        toast.error(errorMessage);
+      }
+    }
+  };
 
-  // const handleOpenAddModal = () => {
-  //   fetchAvailableProducts();
-  //   setIsAddModalOpen(true);
-  // };
+  const handleUpdateProduct = async (e) => {
+    e.preventDefault();
+    
+    if (!editQuantity) {
+      toast.error("Vui lòng nhập số lượng");
+      return;
+    }
+
+    const parsedQuantity = parseInt(editQuantity);
+    if (isNaN(parsedQuantity) || parsedQuantity <= 0) {
+      toast.error("Số lượng phải là số nguyên dương");
+      return;
+    }
+
+    try {
+      await request.put(`WarehouseDetail/${editingProduct.productId}/${id}`, {
+        quantity: parsedQuantity
+      });
+      toast.success("Cập nhật số lượng thành công");
+      setEditModalOpen(false);
+      fetchWarehouseDetails();
+    } catch (error) {
+      console.error("Lỗi khi cập nhật số lượng:", error);
+      const errorMessage = error.response?.data?.message || "Không thể cập nhật số lượng sản phẩm";
+      toast.error(errorMessage);
+    }
+  };
 
   if (loading) return <div className="p-0">Đang tải...</div>;
   if (!warehouse) return <div className="p-0">Không tìm thấy thông tin kho</div>;
@@ -388,6 +396,61 @@ const DetailWarehouse = () => {
               </div>
             </form>
           )}
+        </div>
+      </Modal>
+
+      {/* Modal Chỉnh sửa số lượng */}
+      <Modal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        className="flex items-center justify-center"
+      >
+        <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md m-4">
+          <h2 className="text-xl font-semibold mb-4 text-green-800">
+            Chỉnh sửa số lượng sản phẩm
+          </h2>
+          <form onSubmit={handleUpdateProduct}>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tên sản phẩm
+              </label>
+              <input
+                type="text"
+                value={editingProduct?.productName || ""}
+                disabled
+                className="w-full p-2 border border-gray-300 rounded-md bg-gray-50"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Số lượng mới
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={editQuantity}
+                onChange={(e) => setEditQuantity(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <Button
+                type="button"
+                onClick={() => setEditModalOpen(false)}
+                className="bg-gray-500 text-white hover:bg-gray-600 px-4 py-2 rounded-lg"
+              >
+                Hủy
+              </Button>
+              <Button
+                type="submit"
+                className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-lg"
+              >
+                Cập nhật
+              </Button>
+            </div>
+          </form>
         </div>
       </Modal>
     </div>
