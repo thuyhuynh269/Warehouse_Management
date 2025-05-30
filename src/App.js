@@ -12,6 +12,7 @@ import Export from './pages/Export';
 import { ToastContainer } from "react-toastify";
 import EditWarehouse from "./pages/Warehouse/EditWarehouse";
 import DetailWarehouse from "./pages/Warehouse/DetailWarehouse";
+import Employee from "./pages/Employee";
 import Login from "./pages/Login";
 import { getToken } from './components/constants';
 
