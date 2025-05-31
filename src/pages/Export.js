@@ -49,6 +49,7 @@ const Export = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedExport, setSelectedExport] = useState(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [formData, setFormData] = useState({
     employeeName: "",
     quantity: "",
@@ -63,16 +64,70 @@ const Export = () => {
   const printRef = useRef();
 
   const columns = [
-    { field: "id", headerName: "ID", width: 50 },
-    { field: "employeeName", headerName: "Nhân viên", width: 150 },
+    { field: "id", headerName: "ID", width: 60 },
+    { field: "employeeName", headerName: "Nhân viên", width: 180 },
     { field: "consumerName", headerName: "Tên khách hàng", width: 150 },
     { field: "tel", headerName: "Số điện thoại", width: 120 },
-    { field: "address", headerName: "Địa chỉ", width: 200 },
-    { field: "totalPrice", headerName: "Tổng tiền", width: 120 },
+    { field: "address", headerName: "Địa chỉ", width: 100 },
+    { field: "totalPrice", headerName: "Tổng tiền", width: 100 },
+    {
+      field: "status",
+      headerName: "Trạng thái",
+      width: 150,
+      renderCell: (params) => {
+        const status = params.row.status;
+        return (
+          <Select
+            value={status}
+            onChange={(e) => handleStatusChange(params.row.id, e.target.value)}
+            disabled={isUpdatingStatus}
+            className={`w-full ${
+              status === 1 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-yellow-100 text-yellow-800'
+            }`}
+            sx={{
+              '& .MuiSelect-select': {
+                padding: '4px 8px',
+                borderRadius: '9999px',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+              },
+              '& .MuiOutlinedInput-notchedOutline': {
+                border: 'none',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                border: 'none',
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                border: 'none',
+              },
+            }}
+          >
+            <MenuItem value={0} sx={{ 
+              backgroundColor: 'rgb(254 249 195)',
+              color: 'rgb(133 77 14)',
+              '&:hover': { backgroundColor: 'rgb(253 224 71)' },
+              '&.Mui-selected': { backgroundColor: 'rgb(254 249 195)' }
+            }}>
+              Chờ duyệt
+            </MenuItem>
+            <MenuItem value={1} sx={{ 
+              backgroundColor: 'rgb(220 252 231)',
+              color: 'rgb(22 101 52)',
+              '&:hover': { backgroundColor: 'rgb(134 239 172)' },
+              '&.Mui-selected': { backgroundColor: 'rgb(220 252 231)' }
+            }}>
+              Hoàn thành
+            </MenuItem>
+          </Select>
+        );
+      }
+    },
     {
       field: "createDate",
       headerName: "Ngày tạo",
-      width: 150,
+      width: 110,
       renderCell: (params) => {
         const value = params.row?.createDate;
         return value ? formatDate(value) : "--";
@@ -81,7 +136,7 @@ const Export = () => {
     {
       field: "actions",
       headerName: "Thao tác",
-      width: 200,
+      width: 180,
       renderCell: (params) => (
         <div className="flex gap-2">
           <button
@@ -106,7 +161,13 @@ const Export = () => {
           </button>
           <button
             onClick={() => handleEditClick(params)}
-            className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center hover:bg-cyan-700"
+            disabled={params.row.status === 1}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              params.row.status === 1 
+                ? 'bg-gray-400 cursor-not-allowed opacity-50' 
+                : 'bg-cyan-600 hover:bg-cyan-700'
+            }`}
+            title={params.row.status === 1 ? "Không thể chỉnh sửa phiếu đã hoàn thành" : "Chỉnh sửa"}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -370,9 +431,11 @@ const Export = () => {
   };
 
   const handleEditClick = (params) => {
+    // Find employee by name to get id
+    const employee = employees.find(e => e.name === params.row.employeeName);
     setSelectedExport(params.row);
     setFormData({
-      employeeName: String(params.row.employId),
+      employeeName: employee ? String(employee.id) : '',
       quantity: params.row.quantity,
       totalPrice: params.row.totalPrice,
       consumerName: params.row.consumerName,
@@ -381,15 +444,15 @@ const Export = () => {
       exportDetails: params.row.exportDetails
         ? params.row.exportDetails.map(detail => ({
             ...detail,
-            proId: String(detail.proId),
-            wareId: String(detail.wareId)
+            proId: detail.proId ? String(detail.proId) : '',
+            wareId: detail.wareId ? String(detail.wareId) : ''
           }))
         : []
     });
     setIsModalOpen(true);
   };
 
-  // Khi mở form sửa, load lại danh sách sản phẩm cho từng kho
+  // Khi mở form sửa, load lại danh sách sản phẩm cho từng kho (chạy sau khi setFormData)
   useEffect(() => {
     if (isModalOpen && selectedExport && formData.exportDetails.length > 0) {
       formData.exportDetails.forEach((detail, idx) => {
@@ -399,66 +462,7 @@ const Export = () => {
       });
     }
     // eslint-disable-next-line
-  }, [isModalOpen]);
-
-  // Hàm xuất PDF phiếu xuất kho
-  const exportToPDF = (exportRow) => {
-    const doc = new jsPDF();
-    doc.setFont('TimesNewRoman');
-    doc.setFontSize(12);
-    doc.text('PHIẾU XUẤT KHO', 80, 28);
-
-    let y = 54;
-    doc.setFontSize(11);
-    doc.text(`Ngày ..... tháng ..... năm .....`, 10, y);
-    doc.text(`Số: ............`, 150, y);
-    doc.text(`Nợ: ............`, 150, y + 8);
-    doc.text(`Có: ............`, 150, y + 16);
-
-    y += 24;
-    doc.setFontSize(11);
-    doc.text(`- Họ và tên người nhận hàng: ${exportRow.consumerName || ''}`, 10, y);
-    doc.text(`Địa chỉ (bộ phận): ${exportRow.address || ''}`, 120, y);
-    y += 8;
-    doc.text(`- Lý do xuất kho: .....................................................`, 10, y);
-    y += 8;
-    doc.text(`- Xuất tại kho (ngăn lô): ${exportRow.exportDetails && exportRow.exportDetails[0] ? exportRow.exportDetails[0].warehouseName || '' : ''}   Địa điểm: .............................................`, 10, y);
-    y += 10;
-
-    // Dữ liệu bảng
-    const tableColumn = [
-      { header: 'STT', dataKey: 'stt' },
-      { header: 'Tên, nhãn hiệu, quy cách, phẩm chất vật tư, dụng cụ, sản phẩm, hàng hoá', dataKey: 'proName' },
-      { header: 'Mã số', dataKey: 'proId' },
-      { header: 'Đơn vị tính', dataKey: 'unit' },
-      { header: 'Số lượng yêu cầu', dataKey: 'quantity' },
-      { header: 'Số lượng thực xuất', dataKey: 'quantity' },
-      { header: 'Đơn giá', dataKey: 'price' },
-      { header: 'Thành tiền', dataKey: 'total' },
-    ];
-    const tableRows = (exportRow.exportDetails || []).map((detail, idx) => ({
-      stt: idx + 1,
-      proName: detail.productName || detail.proName || '',
-      proId: detail.proId || '',
-      unit: detail.unit || '',
-      quantity: detail.quantity || '',
-      price: detail.price || '',
-      total: detail.quantity && detail.price ? (Number(detail.quantity) * Number(detail.price)).toLocaleString() : '',
-    }));
-
-    doc.autoTable({
-      startY: y,
-      head: [tableColumn.map(col => col.header)],
-      body: tableRows.map(row => tableColumn.map(col => row[col.dataKey])),
-      styles: { font: 'TimesNewRoman', fontStyle: 'normal', fontSize: 9 },
-      headStyles: { font: 'TimesNewRoman', fontStyle: 'normal', fontSize: 9, fillColor: [220, 220, 220] },
-      theme: 'grid',
-      margin: { left: 5, right: 5 },
-    });
-
-    // Xuất file
-    doc.save(`phieu_xuat_kho_${exportRow.id || ''}.pdf`);
-  };
+  }, [isModalOpen, selectedExport]);
 
   const handlePrint = () => {
     const printContents = printRef.current.innerHTML;
@@ -473,6 +477,53 @@ const Export = () => {
       win.print();
       win.close();
     }, 500);
+  };
+
+  const handleStatusChange = async (exportId, newStatus) => {
+    try {
+      setIsUpdatingStatus(true);
+      // Get the current export data
+      const currentExport = rows.find(row => row.id === exportId);
+      if (!currentExport) {
+        throw new Error("Không tìm thấy phiếu xuất");
+      }
+
+      // Prepare the request body according to the API format
+      const requestData = {
+        employId: currentExport.employId,
+        quantity: currentExport.quantity,
+        totalPrice: currentExport.totalPrice,
+        consumerName: currentExport.consumerName,
+        tel: currentExport.tel,
+        address: currentExport.address,
+        status: newStatus,
+        exportDetails: currentExport.exportDetails.map(detail => ({
+          proId: detail.proId,
+          wareId: detail.wareId,
+          quantity: detail.quantity,
+          price: detail.price
+        }))
+      };
+
+      const response = await request.put(`Export/List/${exportId}`, requestData);
+      
+      if (response && response.status === 200) {
+        // Update the local state
+        setRows(prevRows => 
+          prevRows.map(row => 
+            row.id === exportId ? { ...row, status: newStatus } : row
+          )
+        );
+        toast.success("Cập nhật trạng thái thành công!");
+      } else {
+        throw new Error("Không thể cập nhật trạng thái");
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || "Có lỗi xảy ra khi cập nhật trạng thái!";
+      toast.error(errorMessage);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
   };
 
   return (
@@ -619,7 +670,12 @@ const Export = () => {
                         <div className="flex-grow min-w-[120px] w-auto">
                           <label className="block text-xs text-gray-500 mb-1">Sản phẩm</label>
                           <Select
-                            value={productsInWarehouses[index] && productsInWarehouses[index].some(p => String(p.id) === String(detail.proId)) ? String(detail.proId) : ''}
+                            value={
+                              productsInWarehouses[index] &&
+                              productsInWarehouses[index].some(p => String(p.id) === String(detail.proId))
+                                ? String(detail.proId)
+                                : ''
+                            }
                             onChange={(e) => updateExportDetail(index, "proId", e.target.value)}
                             className="w-auto min-w-[120px]"
                             displayEmpty
@@ -693,6 +749,7 @@ const Export = () => {
                 <Button
                   onClick={handleSubmit}
                   className="bg-blue-600 text-white hover:bg-blue-700 rounded-lg px-6 py-2 font-semibold shadow"
+                  disabled={formData.exportDetails.length === 0}
                 >
                   {selectedExport ? 'Cập nhật' : 'Thêm mới'}
                 </Button>
