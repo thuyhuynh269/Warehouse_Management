@@ -19,8 +19,16 @@ const Import = () => {
         { field: "address", headerName: "Địa chỉ", width: 100 },
         { field: "email", headerName: "Email", width: 100 },
         { field: "quantity", headerName: "Số lượng", width: 50 },
-        { field: "manuDate", headerName: "Ngày sản xuất", width: 170 },
         { field: "totalPrice", headerName: "Tổng tiền", width: 70 },
+        {
+            field: "manuDate",
+            headerName: "Ngày sản xuất",
+            width: 150,
+            renderCell: (params) => {
+                const value = params.row?.manuDate;
+                return value ? formatDate(value) : "--";
+            }
+        },
         {
             field: "actions",
             headerName: "Thao tác",
@@ -48,18 +56,7 @@ const Import = () => {
                         </svg>
                     </button>
                     <button
-                        onClick={() => {
-                            setSelectedImport(params.row);
-                            setFormData({
-                                employId: params.row.employId,
-                                status: params.row.status,
-                                supplierName: params.row.supplierName,
-                                tel: params.row.tel,
-                                address: params.row.address,
-                                email: params.row.email
-                            });
-                            setIsEditModalOpen(true);
-                        }}
+                        onClick={() => handleEditClick(params)}
                         className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center hover:bg-cyan-700"
                     >
                         <svg
@@ -150,6 +147,27 @@ const Import = () => {
             [name]: value
         }));
     };
+    const handleEditClick = (params) => {
+        setSelectedImport(params.row);
+        setFormData({
+            employeeName: String(params.row.employId),
+            quantity: params.row.quantity,
+            totalPrice: params.row.totalPrice,
+            supplierName: params.row.supplierName, // dùng cho nhập hàng
+            tel: params.row.tel,
+            address: params.row.address,
+            importDetails: params.row.importDetails
+                ? params.row.importDetails.map(detail => ({
+                    ...detail,
+                    proId: Number(detail.proId),
+                    quantity: Number(detail.quantity),
+                    price: Number(detail.price),
+                    manuDate: new Date(detail.manuDate)
+                }))
+                : []
+        });
+        setIsModalOpen(true);
+    };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
@@ -162,7 +180,8 @@ const Import = () => {
             supplierName: "",
             tel: "",
             address: "",
-            email: ""
+            email: "",
+            importDetails: []
         });
     };
 
@@ -303,7 +322,10 @@ const Import = () => {
                                 Quản lý phiếu nhập
                             </Typography>
                             <Button
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={() => {
+                                    setSelectedImport(null);
+                                    setIsModalOpen(true);
+                                }}
                                 className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -313,15 +335,19 @@ const Import = () => {
                                 Thêm mới
                             </Button>
                         </div>
-                        <div style={{ height: 400, width: "100%" }}>
-                            <DataGrid
-                                rows={rows}
-                                columns={columns}
-                                pageSize={5}
-                                rowsPerPageOptions={[5]}
-                                checkboxSelection
-                                disableSelectionOnClick
-                            />
+                        <div className="grid grid-cols-3 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
+                            <Card className="col-span-3">
+                                <CardContent style={{ height: "100%", width: "100%" }}>
+                                    <DataGrid
+                                        rows={rows}
+                                        columns={columns}
+                                        pageSize={5}
+                                        rowsPerPageOptions={[5]}
+                                        disableSelectionOnClick
+                                        getRowId={(row) => row.id}
+                                    />
+                                </CardContent>
+                            </Card>
                         </div>
                     </CardContent>
                 </Card>
@@ -504,12 +530,12 @@ const Import = () => {
                         <div className="space-y-4">
                             <div className="border-b pb-2">
                                 <label className="text-gray-600 text-sm">Nhân viên:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.employId}</p>
+                                <p className="text-gray-900 font-medium break-words">{selectedImport.employId}</p>
                             </div>
 
                             <div className="border-b pb-2">
                                 <label className="text-gray-600 text-sm">Tên nhà cung cấp:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.supplierName}</p>
+                                <p className="text-gray-900 font-medium break-words">{selectedImport.supplierName}</p>
                             </div>
 
                             <div className="border-b pb-2">
@@ -519,19 +545,18 @@ const Import = () => {
 
                             <div className="border-b pb-2">
                                 <label className="text-gray-600 text-sm">Địa chỉ:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.address}</p>
+                                <p className="text-gray-900 font-medium break-words">{selectedImport.address}</p>
                             </div>
 
                             <div className="border-b pb-2">
                                 <label className="text-gray-600 text-sm">Tổng tiền:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.totalPrice}</p>
+                                <p className="text-gray-900 font-medium break-words">{selectedImport.totalPrice}</p>
                             </div>
 
                             <div className="border-b pb-2">
                                 <label className="text-gray-600 text-sm">Ngày sản xuất:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.manuDate}</p>
+                                <p className="text-gray-900 font-medium">{selectedImport.manuDate ? formatDate(selectedImport.manuDate) : "--"}</p>
                             </div>
-
                             <div className="mt-4">
                                 <h3 className="text-lg font-semibold mb-2">Chi tiết nhập hàng</h3>
                                 <div className="space-y-2">
@@ -560,4 +585,13 @@ const Import = () => {
         </>
     );
 };
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 export default Import;
