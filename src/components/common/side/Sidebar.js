@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 
 const Sidebar = () => {
@@ -130,7 +129,7 @@ const Sidebar = () => {
               <li key={index}>
                 {item.isLogout ? (
                   <button
-                    className="flex items-center gap-2 py-2 px-2 w-full text-left text-red-600 hover:bg-red-100 rounded"
+                    className="flex items-center gap-2 py-2 px-4 w-full text-left text-red-600 hover:bg-red-100 rounded"
                     onClick={() => {
                       // Add logout logic here
                       console.log("Logging out...");
@@ -142,7 +141,7 @@ const Sidebar = () => {
                 ) : (
                   <Link
                     to={item.path}
-                    className={`flex items-center gap-2 py-2 px-2 hover:bg-blue-100 rounded text-blue-700 ${
+                    className={`flex items-center gap-2 py-2 px-4 hover:bg-blue-100 rounded text-blue-700 ${
                       item.path === "/account" ? "bg-blue-100" : ""
                     }`}
                   >
@@ -153,7 +152,6 @@ const Sidebar = () => {
                     )}
                     {item.label}
                   </Link>
-                )}
               </li>
             ))}
           </ul>

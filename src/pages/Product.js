@@ -410,7 +410,7 @@ const Product = () => {
 
               <Input
                 name="expiry"
-                placeholder="Hạn sử dụng (ngày)"
+                placeholder="Hạn sử dụng (tháng)"
                 type="number"
                 value={formData.expiry}
                 onChange={handleInputChange}
@@ -455,62 +455,67 @@ const Product = () => {
       {isDetailModalOpen && selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
           <div
-            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative"
-            style={{ maxWidth: '400px', maxHeight: '90vh', overflowY: 'auto' }}
+            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl relative"
+            style={{ maxHeight: '90vh', overflowY: 'auto' }}
           >
             <h2 className="text-2xl font-semibold text-green-800 mb-4">
               Chi tiết sản phẩm
             </h2>
             
-            <div className="space-y-4">
-              <div className="border-b pb-2">
-                <label className="text-gray-600 text-sm">Tên sản phẩm:</label>
-                <p className="text-gray-900 font-medium">{selectedProduct.proName}</p>
-              </div>
-              
-              <div className="border-b pb-2">
-                <label className="text-gray-600 text-sm">Danh mục:</label>
-                <p className="text-gray-900 font-medium">{selectedProduct.categoryName}</p>
-              </div>
-              
-              <div className="border-b pb-2">
-                <label className="text-gray-600 text-sm">Nhà sản xuất:</label>
-                <p className="text-gray-900 font-medium">{selectedProduct.manufacturerName}</p>
-              </div>
-              
-              <div className="border-b pb-2">
-                <label className="text-gray-600 text-sm">Đơn vị:</label>
-                <p className="text-gray-900 font-medium">{selectedProduct.unit}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left column - Product details */}
+              <div className="space-y-4">
+                <div className="border-b pb-2">
+                  <label className="text-gray-600 text-sm">Tên sản phẩm:</label>
+                  <p className="text-gray-900 font-medium">{selectedProduct.proName}</p>
+                </div>
+                
+                <div className="border-b pb-2">
+                  <label className="text-gray-600 text-sm">Danh mục:</label>
+                  <p className="text-gray-900 font-medium">{selectedProduct.categoryName}</p>
+                </div>
+                
+                <div className="border-b pb-2">
+                  <label className="text-gray-600 text-sm">Nhà sản xuất:</label>
+                  <p className="text-gray-900 font-medium">{selectedProduct.manufacturerName}</p>
+                </div>
+                
+                <div className="border-b pb-2">
+                  <label className="text-gray-600 text-sm">Đơn vị:</label>
+                  <p className="text-gray-900 font-medium">{selectedProduct.unit}</p>
+                </div>
+
+                <div className="border-b pb-2">
+                  <label className="text-gray-600 text-sm">Hạn sử dụng:</label>
+                  <p className="text-gray-900 font-medium">{selectedProduct.expiry} Tháng</p>
+                </div>
+
+                <div className="border-b pb-2">
+                  <label className="text-gray-600 text-sm">Trạng thái:</label>
+                  <p className={`font-medium ${selectedProduct.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                    {selectedProduct.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                  </p>
+                </div>
               </div>
 
-              <div className="border-b pb-2">
-                <label className="text-gray-600 text-sm">Hạn sử dụng:</label>
-                <p className="text-gray-900 font-medium">{selectedProduct.expiry} ngày</p>
-              </div>
-
-              <div className="border-b pb-2">
-                <label className="text-gray-600 text-sm">Hình ảnh:</label>
-                {selectedProduct.image && (
+              {/* Right column - Product image */}
+              <div className="flex flex-col items-center justify-center">
+                <label className="text-gray-600 text-sm mb-2">Hình ảnh:</label>
+                {selectedProduct.image ? (
                   <img
                     src={selectedProduct.image}
                     alt={selectedProduct.proName}
+                    className="max-w-full h-auto rounded-lg shadow-md"
                     style={{
-                      maxWidth: '250px',
-                      width: '100%',
-                      height: 'auto',
-                      borderRadius: '12px',
-                      display: 'block',
-                      margin: '0 auto'
+                      maxHeight: '300px',
+                      objectFit: 'contain'
                     }}
                   />
+                ) : (
+                  <div className="w-full h-48 flex items-center justify-center bg-gray-100 rounded-lg">
+                    <span className="text-gray-400 italic">Không có ảnh</span>
+                  </div>
                 )}
-              </div>
-
-              <div className="border-b pb-2">
-                <label className="text-gray-600 text-sm">Trạng thái:</label>
-                <p className={`font-medium ${selectedProduct.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                  {selectedProduct.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
-                </p>
               </div>
             </div>
 
