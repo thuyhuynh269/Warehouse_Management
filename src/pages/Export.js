@@ -219,7 +219,7 @@ const Export = () => {
 
   const getProducts = () => {
     request
-      .get("product")
+      .get("product?isActive=true")
       .then((response) => {
         setProducts(response.data);
       })
@@ -376,7 +376,8 @@ const Export = () => {
   // Hàm xử lý khi chọn kho cho từng dòng chi tiết
   const handleWarehouseChange = async (index, wareId) => {
     updateExportDetail(index, "wareId", wareId);
-    updateExportDetail(index, "proId", "");
+    // Không reset proId về rỗng ở đây để giữ sản phẩm đã chọn khi sửa
+    // updateExportDetail(index, "proId", "");
     
     if (!wareId) {
       setProductsInWarehouses(prev => ({ ...prev, [index]: [] }));
@@ -385,19 +386,7 @@ const Export = () => {
 
     try {
       const res = await request.get(`WarehouseDetail?wareId=${wareId}`);
-
-      if (!res.data || res.data.length === 0) {
-        setProductsInWarehouses(prev => ({ ...prev, [index]: [] }));
-        return;
-      }
-
-      // Lọc chỉ lấy sản phẩm từ kho được chọn
       const warehouseProducts = res.data.filter(item => item.wareId === Number(wareId));
-
-      if (warehouseProducts.length === 0) {
-        setProductsInWarehouses(prev => ({ ...prev, [index]: [] }));
-        return;
-      }
 
       // Tính tổng số lượng cho từng sản phẩm trong kho được chọn
       const productQuantities = warehouseProducts.reduce((acc, item) => {
@@ -412,18 +401,40 @@ const Export = () => {
       }, {});
 
       // Lọc sản phẩm có số lượng > 0
-      const availableProductIds = Object.entries(productQuantities)
+      let availableProductIds = Object.entries(productQuantities)
         .filter(([_, data]) => data.quantity > 0)
         .map(([proId]) => Number(proId));
 
       // Lọc sản phẩm từ danh sách products và thêm thông tin số lượng
-      const productList = products
+      let productList = products
         .filter(product => availableProductIds.includes(product.id))
         .map(product => ({
           ...product,
-          availableQuantity: productQuantities[product.id].quantity,
-          warehouseDetail: productQuantities[product.id].warehouseDetail
+          availableQuantity: productQuantities[product.id]?.quantity || 0,
+          warehouseDetail: productQuantities[product.id]?.warehouseDetail
         }));
+
+      // --- Đảm bảo sản phẩm đã chọn luôn có trong danh sách ---
+      const currentProId = formData.exportDetails[index]?.proId;
+      if (
+        currentProId &&
+        !productList.some(product => String(product.id) === String(currentProId))
+      ) {
+        const currentProduct = products.find(
+          product => String(product.id) === String(currentProId)
+        );
+        if (currentProduct) {
+          productList = [
+            ...productList,
+            {
+              ...currentProduct,
+              availableQuantity: productQuantities[currentProduct.id]?.quantity || 0,
+              warehouseDetail: productQuantities[currentProduct.id]?.warehouseDetail
+            }
+          ];
+        }
+      }
+      // --- END FIX ---
 
       setProductsInWarehouses(prev => ({
         ...prev,
