@@ -13,6 +13,7 @@ import EditWarehouse from "./pages/Warehouse/EditWarehouse";
 import DetailWarehouse from "./pages/Warehouse/DetailWarehouse";
 import Employee from "./pages/Employee";
 import Login from "./pages/Login";
+import TransferWarehouse from "./pages/Warehouse/TransferWarehouse";
 
 function App() {
   return (
@@ -26,16 +27,18 @@ function App() {
             <Route path="/warehouse" element={<Warehouse />} />
             <Route path="/warehouse/:id" element={<DetailWarehouse />} />
             <Route path="/warehouse/edit/:id" element={<EditWarehouse />} />
+            <Route path="/warehouse/add" element={<AddWarehouse />} />
+            <Route path="/warehouse/transfer" element={<TransferWarehouse />} />
             <Route path="/category" element={<Category />} /> 
             <Route path="/manufacturers" element={<Manufacturer/>} />
             <Route path="/product" element={<Product/>} />
-            <Route path="/add-warehouse" element={<AddWarehouse />} /> {/* Add the route for AddWarehouse */}
             <Route path="/export" element={<Export />} /> {/* Add Export route */}
             <Route path="/add-warehouse" element={<AddWarehouse />} />
             <Route path ="/edit-warehouse/:id" element={<EditWarehouse />} />
             <Route path="/detail-warehouse/:id" element={<DetailWarehouse />} />
             <Route path="/detail-warehouse/:id" element={<DetailWarehouse />}/>
             <Route path="/login" element={<Login/>} />
+            <Route path="/employee" element={<Employee/>}/>
             
             
             {/* Add more routes as needed */}
