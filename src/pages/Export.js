@@ -187,7 +187,12 @@ const Export = () => {
               setPrintData(params.row);
               setTimeout(() => handlePrint(), 100);
             }}
-            className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center hover:bg-green-700"
+            disabled={params.row.status !== 1}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              params.row.status !== 1
+                ? 'bg-gray-300 cursor-not-allowed opacity-50'
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
             title="In PDF"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
@@ -225,7 +230,7 @@ const Export = () => {
 
   const getWarehouses = () => {
     request
-      .get("warehouse")
+      .get("warehouse?isActive=true")
       .then((response) => {
         setWarehouses(response.data);
       })
@@ -529,7 +534,7 @@ const Export = () => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="font-bold text-3xl text-green-800">Quản lý phiếu xuất</h1>
+        <h1 className="font-bold text-3xl text-green-800">DANH SÁCH PHIẾU XUẤT</h1>
         <Button
           onClick={() => {
             setSelectedExport(null);

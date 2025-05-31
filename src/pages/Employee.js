@@ -1,9 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DataGrid } from '@mui/x-data-grid';
 import { toast } from "react-toastify";
 import { Card, CardContent, Select, MenuItem, Paper, Typography, Box, Switch, FormControlLabel } from "@mui/material";
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 const Employee = () => {
   const [rows, setRows] = useState([]);
@@ -21,6 +28,8 @@ const Employee = () => {
     role: 1,
     isActive: true
   });
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetEmployeeId, setResetEmployeeId] = useState(null);
 
   const roleOptions = {
     1: "Employee",
@@ -28,13 +37,37 @@ const Employee = () => {
     3: "Admin"
   };
 
+  const roleNameToRole = {
+    "Employee": 1,
+    "Manager": 2,
+    "Admin": 3
+  };
+
+  const handleResetPassword = useCallback(async () => {
+    if (!resetEmployeeId) return;
+    try {
+      const response = await request.post(`/Employee/ResetPassword/${resetEmployeeId}`);
+      if (response && response.status === 200) {
+        toast.success('Reset mật khẩu thành công!');
+      } else {
+        throw new Error('Không thể reset mật khẩu');
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Có lỗi xảy ra khi reset mật khẩu!';
+      toast.error(errorMessage);
+    } finally {
+      setResetDialogOpen(false);
+      setResetEmployeeId(null);
+    }
+  }, [resetEmployeeId]);
+
   const columns = [
     { field: "id", headerName: "ID", width: 50 },
-    { field: "name", headerName: "Tên nhân viên", width: 150 },
+    { field: "name", headerName: "Tên nhân viên", width: 180 },
     { field: "code", headerName: "Mã nhân viên", width: 120 },
     { field: "tel", headerName: "Số điện thoại", width: 120 },
     { field: "email", headerName: "Email", width: 200 },
-    { field: "address", headerName: "Địa chỉ", width: 200 },
+    { field: "address", headerName: "Địa chỉ", width: 150 },
     { 
       field: "roleName", 
       headerName: "Vai trò", 
@@ -88,7 +121,7 @@ const Employee = () => {
                 tel: params.row.tel,
                 email: params.row.email,
                 address: params.row.address,
-                role: params.row.role,
+                role: roleNameToRole[params.row.roleName] || 1,
                 isActive: params.row.isActive
               });
               setIsEditModalOpen(true);
@@ -107,6 +140,18 @@ const Employee = () => {
             >
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => {
+              setResetEmployeeId(params.row.id);
+              setResetDialogOpen(true);
+            }}
+            className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center hover:bg-orange-600"
+            title="Reset mật khẩu nhân viên"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+              <path d="M12 15v2m0 4a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm0-6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
             </svg>
           </button>
         </div>
@@ -188,7 +233,7 @@ const Employee = () => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="font-bold text-3xl text-green-800">Quản lý nhân viên</h1>
+        <h1 className="font-bold text-3xl text-green-800">DANH SÁCH NHÂN VIÊN</h1>
         <Button
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
@@ -360,6 +405,27 @@ const Employee = () => {
           </div>
         </div>
       )}
+
+      {/* Dialog xác nhận reset mật khẩu */}
+      <Dialog open={resetDialogOpen} onClose={() => setResetDialogOpen(false)}>
+        <DialogTitle style={{ textAlign: 'center', fontWeight: 700, fontSize: 22 }}>Xác nhận</DialogTitle>
+        <DialogContent>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 8 }}>
+            <WarningAmberIcon style={{ fontSize: 56, color: '#ff9800', marginBottom: 8 }} />
+            <DialogContentText style={{ textAlign: 'center', fontSize: 18 }}>
+              Bạn có chắc chắn muốn reset mật khẩu cho nhân viên này?
+            </DialogContentText>
+          </div>
+        </DialogContent>
+        <DialogActions style={{ justifyContent: 'center', paddingBottom: 20 }}>
+          <Button onClick={() => setResetDialogOpen(false)} variant="outlined" color="inherit">
+            Hủy
+          </Button>
+          <Button onClick={handleResetPassword} variant="contained" style={{ background: '#ff9800', color: '#fff' }}>
+            Xác nhận
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

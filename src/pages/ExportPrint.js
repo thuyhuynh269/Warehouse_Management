@@ -39,6 +39,7 @@ const ExportPrint = forwardRef(({ data, warehouses = [] }, ref) => {
             <th style={{ border: '1px solid #000', padding: 4 }}>Tên, nhãn hiệu, quy cách, phẩm chất vật tư, dụng cụ, sản phẩm, hàng hoá</th>
             <th style={{ border: '1px solid #000', padding: 4 }}>Mã số</th>
             <th style={{ border: '1px solid #000', padding: 4 }}>Đơn vị tính</th>
+            <th style={{ border: '1px solid #000', padding: 4 }}>Kho xuất</th>
             <th style={{ border: '1px solid #000', padding: 4 }}>Số lượng yêu cầu</th>
             <th style={{ border: '1px solid #000', padding: 4 }}>Số lượng thực xuất</th>
             <th style={{ border: '1px solid #000', padding: 4 }}>Đơn giá</th>
@@ -52,6 +53,11 @@ const ExportPrint = forwardRef(({ data, warehouses = [] }, ref) => {
               <td style={{ border: '1px solid #000', padding: 4 }}>{item.productName || item.proName}</td>
               <td style={{ border: '1px solid #000', textAlign: 'center', padding: 4 }}>{item.proId}</td>
               <td style={{ border: '1px solid #000', textAlign: 'center', padding: 4 }}>{item.unit}</td>
+              <td style={{ border: '1px solid #000', textAlign: 'center', padding: 4 }}>
+                {warehouses.length > 0
+                  ? (warehouses.find(w => String(w.id) === String(item.wareId))?.wareName || '')
+                  : (item.warehouseName || '')}
+              </td>
               <td style={{ border: '1px solid #000', textAlign: 'center', padding: 4 }}>{item.quantity}</td>
               <td style={{ border: '1px solid #000', textAlign: 'center', padding: 4 }}>{item.quantity}</td>
               <td style={{ border: '1px solid #000', textAlign: 'right', padding: 4 }}>{item.price}</td>
