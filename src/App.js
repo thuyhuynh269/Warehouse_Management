@@ -16,6 +16,7 @@ import DetailWarehouse from "./pages/Warehouse/DetailWarehouse";
 import Employee from "./pages/Employee";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import Statistic from "./pages/Statistic";
 import { getToken } from './components/constants';
 
 import { useEffect, useRef, useState } from "react";
@@ -64,7 +65,7 @@ function App() {
               <Route path="/category" element={<Category />} />
               <Route path="/manufacturers" element={<Manufacturer />} />
               <Route path="/employee" element={<Employee />} />
-              
+              <Route path="/statistics" element={<Statistic />} />
               <Route path="/login" element={<Login />} />
             </Routes>
           </div>
