@@ -39,6 +39,7 @@ function App() {
             <Route path="/detail-warehouse/:id" element={<DetailWarehouse />}/>
             <Route path="/login" element={<Login/>} />
             <Route path="/employee" element={<Employee/>}/>
+            <Route path="/transfer-warehouse" element={<TransferWarehouse />} />
             
             
             {/* Add more routes as needed */}

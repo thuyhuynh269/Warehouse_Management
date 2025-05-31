@@ -15,14 +15,14 @@ const Warehouse = () => {
 
   const columns = [
     { field: "id", headerName: "ID", width: 50 },
-    { field: "wareName", headerName: "Tên kho", width: 150 },
-    { field: "address", headerName: "Địa chỉ", width: 200 },
+    { field: "wareName", headerName: "Tên kho", width: 200 },
+    { field: "address", headerName: "Địa chỉ", width: 300 },
     { field: "tel", headerName: "Điện thoại", width: 150 },
     { field: "email", headerName: "Email", width: 200 },
     {
       field: "isActive",
       headerName: "Trạng thái",
-      width: 100,
+      width: 150,
       renderCell: (params) => {
         const handleToggle = () => {
           const newStatus = !params.row.isActive;
