@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 
 const Sidebar = () => {
@@ -35,28 +34,13 @@ const Sidebar = () => {
           <ul className="space-y-1">
             {navItems.map((item, index) => (
               <li key={index}>
-                {item.isLogout ? (
-                  <button
-                    className="flex items-center gap-2 py-2 px-4 w-full text-left text-red-600 hover:bg-red-100 rounded"
-                    onClick={() => {
-                      // Add logout logic here
-                      console.log("Logging out...");
-                    }}
-                  >
-                    <span className="w-5 h-5 text-red-600 text-lg">{item.icon}</span>
-                    {item.label}
-                  </button>
-                ) : (
                   <Link
                     to={item.path}
-                    className={`flex items-center gap-2 py-2 px-4 hover:bg-blue-100 rounded text-blue-700 ${
-                      item.path === "/account" ? "bg-blue-100" : ""
-                    }`}
+                    className={`flex items-center gap-2 py-2 px-4 hover:bg-blue-100 rounded text-blue-700`}
                   >
                     <span className="w-5 h-5 text-blue-400 text-lg">{item.icon}</span>
                     {item.label}
                   </Link>
-                )}
               </li>
             ))}
           </ul>

@@ -1,66 +1,52 @@
 import { toast } from "react-toastify";
-import { useNavigate, useLocation } from "react-router-dom";
 
 import { useState, useEffect } from "react";
 import { Button, Input } from "../components/ui";
 import * as request from "../utils/request";
-import { useStore, actions } from "../pages/store";
-import { setToken } from "../components/constants";
-import { getClientId } from "../components/constants";
+import { getToken, setToken } from "../components/constants";
 
 const Login = () => {
-  const [clientId, setClientId] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
-  const location = useLocation();
 
-  const [state, dispatch] = useStore();
+  //const [state, dispatch] = useStore();
 
   useEffect(() => {
     setError("");
   }, [username, password]);
 
   useEffect(() => {
-    const token = state.token;
+    const token = getToken();
 
-    if (token) navigate("/");
+    if (token) 
+      window.location.href = '/';
   });
-
-  useEffect(() => {
-    setClientId(getClientId())
-  }, []);
   
   const handleSubmit = (event) => {
-    event.preventDefault();
+  event.preventDefault();
+  request
+    .post("Employee/login", {
+      username: username,
+      password: password,
+    })
+    .then((response) => {
+      if (!response || !response.token) {
+        setError("Can't connect to server or no token received.");
+        toast.error("Login failed: Invalid response");
+        return;
+      }
 
-    request
-      .post("auth/login", {
-        username: username,
-        password: password,
-      })
-      .then((response) => {
-        if (!response) {
-          setError("Can't connecting to server.");
-          toast.error(`Login failed: ${error.response.data}`);
-          return;
-        }
-
-        const token = response.token;
-        setToken(token, 604800000);
-        
-        const from = location.state?.from?.pathname || "/";
-        navigate(from, { replace: true });
-
-        dispatch(actions.setToken(token));
-
-        toast.success("Login successful");
-      })
-      .catch((error) => {
-        setError(error.response.data);
-        toast.error(`Login failed: ${error.response.data}`);
-      });
+      const token = response.token;
+      setToken(token, 604800000); // Lưu token với thời hạn 7 ngày
+      toast.success("Login successful");
+      window.location.href = '/';
+    })
+    .catch((error) => {
+      const errorMessage = error.response?.data || "An error occurred";
+      setError(errorMessage);
+      toast.error(`Login failed: ${errorMessage}`);
+    });
   };
 
 //   const handleSuccess = (response) => {

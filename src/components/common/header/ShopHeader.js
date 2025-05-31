@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { HiOutlineUserCircle, HiOutlineChevronDown, HiOutlineSearch } from 'react-icons/hi';
+import { useState, useEffect } from 'react';
+import { HiOutlineUserCircle, HiOutlineChevronDown } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import request from '../../../utils/request';
+import { getToken, removeToken } from '../../constants';
+import { toast } from 'react-toastify'
 
 function Header() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isWarehouseOpen, setIsWarehouseOpen] = useState(false);
   const [warehouses, setWarehouses] = useState([]);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchWarehouses();
-  }, []);
 
   const fetchWarehouses = async () => {
     try {
@@ -35,11 +32,18 @@ function Header() {
     navigate(`/warehouse/${warehouse.id}`);
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    // Implement search logic here
-    console.log('Searching for:', searchTerm);
-  };
+  const handleLogout = () => {
+    const token = getToken();
+    if (token) {
+      removeToken();
+      toast.success('Logout successful');
+    }
+    window.location.href = '/login';
+  }
+
+  useEffect(() => {
+    fetchWarehouses();
+  }, []);
 
   return (
     <div className="flex items-center justify-between p-4 bg-white shadow-md border-b">
@@ -96,7 +100,7 @@ function Header() {
               <div className="p-2 flex items-center hover:bg-blue-600">
                 <HiOutlineUserCircle className="mr-2 w-5 h-5" /> Thông tin tài khoản
               </div>
-              <div className="p-2 flex items-center hover:bg-blue-600 cursor-pointer">
+              <div className="p-2 flex items-center hover:bg-blue-600 cursor-pointer" onClick={handleLogout}>
                 <svg
                   className="mr-2 w-5 h-5"
                   fill="none"
