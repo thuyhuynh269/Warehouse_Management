@@ -16,34 +16,99 @@ const Dashboard = () => {
 
     const [toDate, setToDate] = useState(() => formatDate(new Date()));
 
-    const chartRef = useRef(null);
-    const canvasRef = useRef(null);
+    const chartCountRef = useRef(null);
+    const canvasCountRef = useRef(null);
+    const chartPriceRef = useRef(null);
+    const canvasPriceRef = useRef(null);
+
+    const importPieRef = useRef(null);
+    const exportPieRef = useRef(null);
+    const importPieChartRef = useRef(null);
+    const exportPieChartRef = useRef(null);
     const [statisticData, setStatisticData] = useState([]);
 
     useEffect(() => {
-        if (!statisticData.length || !canvasRef.current) return;
+        if (!statisticData.length || !importPieRef.current || !exportPieRef.current || !canvasCountRef.current || !canvasPriceRef.current) return;
 
-        if (chartRef.current) {
-            chartRef.current.destroy();
-        }
-
-        const ctx = canvasRef.current.getContext('2d');
-        chartRef.current = new Chart(ctx, {
+        if (chartCountRef.current) chartCountRef.current.destroy();
+        if (chartPriceRef.current) chartPriceRef.current.destroy();
+        if (importPieChartRef.current) importPieChartRef.current.destroy()
+        if (exportPieChartRef.current) exportPieChartRef.current.destroy();
+        const ctxCount = canvasCountRef.current.getContext('2d');
+        chartCountRef.current = new Chart(ctxCount, {
             type: 'bar',
             data: {
                 labels: statisticData.map((data) => data.date),
                 datasets: [
                     {
                         label: 'Số đơn nhập',
-                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.8)',
                         data: statisticData.map((data) => data.importCount),
                     },
                     {
                         label: 'Số đơn xuất',
-                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
                         data: statisticData.map((data) => data.exportCount),
                     },
                 ]
+            }
+        });
+
+        const ctxPrice = canvasPriceRef.current.getContext('2d');
+        chartPriceRef.current = new Chart(ctxPrice, {
+            type: 'bar',
+            data: {
+                labels: statisticData.map((data) => data.date),
+                datasets: [
+                    {
+                        label: 'Số tiền nhập',
+                        backgroundColor: 'rgba(214, 3, 0, 0.8)',
+                        data: statisticData.map((data) => data.importPrice),
+                    },
+                    {
+                        label: 'Số tiền xuất',
+                        backgroundColor: 'rgba(76, 0, 248, 0.8)',
+                        data: statisticData.map((data) => data.exportPrice),
+                    },
+                ]
+            }
+        });
+
+        let importNew = 0;
+        let importProcessing = 0;
+        let importCompleted = 0;
+        let exportPending = 0;
+        let exportCompleted = 0;
+
+        statisticData.forEach(item => {
+            importNew += item.importNew || 0;
+            importProcessing += item.importProcessing || 0;
+            importCompleted += item.importCompleted || 0;
+            exportPending += item.exportPending || 0;
+            exportCompleted += item.exportCompleted || 0;
+        });
+
+        const ctEx = importPieRef.current.getContext("2d");
+        importPieChartRef.current = new Chart(ctEx, {
+            type: 'pie',
+            data: {
+                labels: ["Mới", "Đang xử lý", "Hoàn thành"],
+                datasets: [{
+                    data: [importNew, importProcessing, importCompleted],
+                    backgroundColor: ['#4caf50', '#ffc107', '#2196f3'],
+                }]
+            }
+        });
+
+        const ctIm = exportPieRef.current.getContext("2d");
+        exportPieChartRef.current = new Chart(ctIm, {
+            type: 'pie',
+            data: {
+                labels: ["Đang chờ", "Hoàn thành"],
+                datasets: [{
+                    data: [exportPending, exportCompleted],
+                    backgroundColor: ['#ff9800', '#3f51b5'],
+                }]
             }
         });
     }, [statisticData]);
@@ -94,6 +159,8 @@ const Dashboard = () => {
             });
     };
 
+    useEffect(() => handleView(), []);
+
     useEffect(() => {
         const today = new Date();
 
@@ -106,30 +173,54 @@ const Dashboard = () => {
         if (!toDate) {
             setToDate(formatDate(today));
         }
+
+        handleView();
     }, [fromDate, toDate]);
 
     return (
-        <div className="grid grid-cols-2 grid-rows-2 gap-4 p-4 max-h-full">
-            <div>
-                <div className="m-4"> 
-                    <h1 className="font-bold text-3xl text-green-800 mb-4">
-                        DASHBOARD
-                    </h1>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
-                        <div>
-                            <label className="text-green-900 text-xl float-start">Từ</label>
-                            <Input value={fromDate} onChange={handleSetFromDate} type="date" />
-                        </div>
-                        <div>
-                            <label className="text-green-900 text-xl float-start">Đến</label>
-                            <Input value={toDate} onChange={handleSetToDate} type="date" />
+        <div>
+            <div className="flex flex-col sm:flex-row items-center justify-between p-4">
+                <h1 className="font-bold text-3xl text-green-800 mb-4">
+                    DASHBOARD
+                </h1>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+                    <div className="flex items-center gap-2">
+                        <label className="text-green-900 text-xl float-start">Từ</label>
+                        <Input value={fromDate} onChange={handleSetFromDate} type="date" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <label className="text-green-900 text-xl float-start">Đến</label>
+                        <Input value={toDate} onChange={handleSetToDate} type="date" />
+                    </div>
+                </div>
+            </div>
+            <div className="grid grid-cols-1 grid-rows-1 sm:grid-cols-2 gap-4 p-4 max-h-full">
+                <div className="flex flex-col gap-4">
+                    <div className="w-full">
+                        <h3 className="text-xl font-bold text-green-800 text-center">Số phiếu nhập/xuất hoàn thành</h3>
+                        <canvas ref={canvasCountRef} className="border border-black"></canvas>
+                    </div>
+                    <div className="w-full">
+                        <h3 className="text-xl font-bold text-green-800 text-center mt-2">Số tiền đã nhập/xuất</h3>
+                        <canvas ref={canvasPriceRef} className="border border-black"></canvas>
+                    </div>
+                </div>
+                <div className="grid grid-rows-2 gap-4">
+                    <div className="mt-4 flex flex-col items-center">
+                        <h3 className="text-xl font-bold text-green-800 text-center mb-2">Tỷ lệ tình trạng đơn nhập</h3>
+                        <div className="h-full max-w-md">
+                            <canvas ref={importPieRef} className="w-full h-full"></canvas>
                         </div>
                     </div>
-                    <Button primary onClick={handleView}>
-                        Xem
-                    </Button>
+
+                    <div className="mt-4 flex flex-col items-center">
+                        <h3 className="text-xl font-bold text-green-800 text-center mb-2">Tỷ lệ tình trạng đơn xuất</h3>
+                        <div className="h-full max-w-md">
+                            <canvas ref={exportPieRef} className="w-full h-full"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <canvas ref={canvasRef} className="border border-black"></canvas>
+
             </div>
         </div>
     );
