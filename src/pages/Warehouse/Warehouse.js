@@ -5,23 +5,24 @@ import { Card, CardContent } from "@mui/material";
 import request from "../../utils/request";
 import { Button } from "../../components/ui";
 import Switch from "@mui/material/Switch";
-import AddWarehouseModal from "../Warehouse/AddWarehouse";
-import EditWarehouseModal from "../Warehouse/EditWarehouse";
+import EditWarehouseModal from "./EditWarehouse";
 import { useNavigate } from "react-router-dom";
 
 const Warehouse = () => {
   const navigate = useNavigate();
-  
+  const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   const columns = [
     { field: "id", headerName: "ID", width: 50 },
-    { field: "wareName", headerName: "Tên kho", width: 150 },
-    { field: "address", headerName: "Địa chỉ", width: 200 },
+    { field: "wareName", headerName: "Tên kho", width: 200 },
+    { field: "address", headerName: "Địa chỉ", width: 300 },
     { field: "tel", headerName: "Điện thoại", width: 150 },
     { field: "email", headerName: "Email", width: 200 },
     {
       field: "isActive",
       headerName: "Trạng thái",
-      width: 100,
+      width: 150,
       renderCell: (params) => {
         const handleToggle = () => {
           const newStatus = !params.row.isActive;
@@ -55,26 +56,6 @@ const Warehouse = () => {
       width: 150,
       renderCell: (params) => (
         <div className="flex gap-2">
-          {/* Nút Xem chi tiết */}
-          <button
-            onClick={() => navigate(`/detail-warehouse/${params.row.id}`)}
-            className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="white"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-
-          {/* Nút Sửa */}
           <button
             onClick={() => handleUpdateData(params)}
             className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center hover:bg-cyan-700"
@@ -97,11 +78,7 @@ const Warehouse = () => {
     },
   ];
 
- 
   const [rows, setRows] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedWarehouse, setSelectedWarehouse] = useState(null);
 
   const getData = () => {
     request
@@ -125,38 +102,69 @@ const Warehouse = () => {
     <>
       <div className="flex justify-between items-center mb-4">
         <h1 className="font-bold text-3xl text-green-800">Danh sách kho hàng</h1>
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
-          </svg>
-          Thêm mới
-        </Button>
       </div>
 
-      <div className="grid grid-cols-3 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
-        <Card className="col-span-3">
-          <CardContent style={{ height: "100%", width: "100%" }}>
+      <div className="flex gap-4 mb-4">
+        <button 
+          onClick={() => navigate("/warehouse/add")}
+          className="bg-[#00B4D8] hover:bg-[#0096c7] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"/>
+            <polyline points="2.32 6.16 12 11 21.68 6.16"/>
+            <line x1="12" y1="22.76" x2="12" y2="11"/>
+          </svg>
+          Thêm kho
+        </button>
+        <button 
+          onClick={() => navigate("/warehouse/transfer")}
+          className="bg-[#00B4D8] hover:bg-[#0096c7] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          Chuyển kho
+        </button>
+        <button 
+          onClick={() => {
+            if (selectedWarehouse) {
+              navigate(`/detail-warehouse/${selectedWarehouse.id}`);
+            } else {
+              toast.warning('Vui lòng chọn kho trước!');
+            }
+          }}
+          className="bg-[#00B4D8] hover:bg-[#0096c7] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM12 17v-6M8 17v-4m8 4v-8"/>
+          </svg>
+          Quản lý sản phẩm kho
+        </button>
+      </div>
+
+      <div className="w-full border-solid border-2 border-green-300 rounded-lg p-4">
+        <Card className="w-full">
+          <CardContent style={{ height: 400, width: '100%' }}>
             <DataGrid
               rows={rows}
               columns={columns}
-              pageSize={5}
-              onRowClick={(params) => {}}
-              className="max-h-4/5"
+              initialState={{
+                pagination: {
+                  paginationModel: { pageSize: 5 },
+                },
+              }}
+              pageSizeOptions={[5, 10, 25, 100]}
+              onRowClick={(params) => setSelectedWarehouse(params.row)}
+              className="w-full"
+              disableRowSelectionOnClick
+              autoHeight
             />
           </CardContent>
         </Card>
       </div>
-
-      {isModalOpen && (
-        <AddWarehouseModal
-          onClose={() => setIsModalOpen(false)}
-          onSuccess={getData}
-        />
-      )}
 
       {isEditModalOpen && selectedWarehouse && (
         <EditWarehouseModal

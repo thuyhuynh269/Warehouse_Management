@@ -46,17 +46,17 @@ function Header() {
   }, []);
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white shadow-md border-b">
+    <div className="flex items-center justify-between p-2 bg-white shadow-md border-b">
       {/* Left Section: Logo and Title */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         <img 
           src="/warehouse-logo.svg" 
           alt="Warehouse Logo" 
-          className="h-12 w-auto"
+          className="h-8 w-auto"
         />
         <div>
-          <h1 className="font-bold text-2xl text-green-800">Warehouse Management</h1>
-          <p className="text-gray-500 text-sm">@phamhien</p>
+          <h1 className="font-bold text-xl text-green-800">Warehouse Management</h1>
+          <p className="text-gray-500 text-xs">@phamhien</p>
         </div>
       </div>
 
