@@ -13,39 +13,54 @@ import { ToastContainer } from "react-toastify";
 import EditWarehouse from "./pages/Warehouse/EditWarehouse";
 import DetailWarehouse from "./pages/Warehouse/DetailWarehouse";
 import Employee from "./pages/Employee";
+import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import { getToken } from './components/constants';
 
+import { useEffect, useRef, useState } from "react";
+
 function App() {
+  const headerRef = useRef(null);
+  const [contentHeight, setContentHeight] = useState(window.innerHeight);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (headerRef.current) {
+        const headerHeight = headerRef.current.offsetHeight;
+        setContentHeight(window.innerHeight - headerHeight);
+      }
+    };
+
+    handleResize(); // Tính lần đầu
+    window.addEventListener("resize", handleResize); // Cập nhật khi resize
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <BrowserRouter>
-      {/* {getToken() && <Header />} */}
-      <Header />
-      <div className="flex gap-2">
-      <ToastContainer position="bottom-right" />
-        {/* {getToken() && <Sidebar />} */}
-        <Sidebar />
-        <div className="m-3 w-full text-gray-900 font-semibold">
-          <Routes>
-            <Route path="/" element={<Warehouse />} />
-            <Route path="/warehouse" element={<Warehouse />} />
-            <Route path="/warehouse/:id" element={<DetailWarehouse />} />
-            <Route path="/warehouse/edit/:id" element={<EditWarehouse />} />
-            <Route path="/category" element={<Category />} /> 
-            <Route path="/manufacturers" element={<Manufacturer/>} />
-            <Route path="/product" element={<Product/>} />
-            <Route path="/add-warehouse" element={<AddWarehouse />} /> {/* Add the route for AddWarehouse */}
-            <Route path="/export" element={<Export />} /> {/* Add Export route */}
-            <Route path="/add-warehouse" element={<AddWarehouse />} />
-            <Route path ="/edit-warehouse/:id" element={<EditWarehouse />} />
-            <Route path="/detail-warehouse/:id" element={<DetailWarehouse />} />
-            <Route path="/detail-warehouse/:id" element={<DetailWarehouse />}/>
-            <Route path="/login" element={<Login />} />
-          </Routes>
+      <div className="min-h-screen flex flex-col">
+        <div ref={headerRef}><Header /></div>
+        <div className="flex overflow-hidden" style={{ height: `${contentHeight}px` }}>
+          <ToastContainer position="bottom-right" />
+          <Sidebar className="w-64" />
+          <div className="flex-1 overflow-y-auto m-3 text-gray-900 font-semibold">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/warehouse" element={<Warehouse />} />
+              <Route path="/warehouse/:id" element={<DetailWarehouse />} />
+              <Route path="/warehouse/edit/:id" element={<EditWarehouse />} />
+              <Route path="/category" element={<Category />} />
+              <Route path="/manufacturers" element={<Manufacturer />} />
+              <Route path="/product" element={<Product />} />
+              <Route path="/add-warehouse" element={<AddWarehouse />} />
+              <Route path="/export" element={<Export />} />
+              <Route path="/login" element={<Login />} />
+            </Routes>
+          </div>
         </div>
       </div>
     </BrowserRouter>
   );
 }
-
 export default App;
