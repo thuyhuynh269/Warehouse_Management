@@ -54,17 +54,17 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/warehouse" element={<Warehouse />} />
               <Route path="/warehouse/:id" element={<DetailWarehouse />} />
-              <Route path="/warehouse/edit/:id" element={<EditWarehouse />} />
-              <Route path="/category" element={<Category />} />
-              <Route path="/manufacturers" element={<Manufacturer />} />
-              <Route path="/import" element={<Import />} />
-              <Route path="/product" element={<Product />} />
-              <Route path="/add-warehouse" element={<AddWarehouse />} /> {/* Add the route for AddWarehouse */}
-              <Route path="/export" element={<Export />} /> {/* Add Export route */}
               <Route path="/add-warehouse" element={<AddWarehouse />} />
+              <Route path="/warehouse/edit/:id" element={<EditWarehouse />} />
               <Route path="/edit-warehouse/:id" element={<EditWarehouse />} />
               <Route path="/detail-warehouse/:id" element={<DetailWarehouse />} />
-              <Route path="/detail-warehouse/:id" element={<DetailWarehouse />} />
+              <Route path="/product" element={<Product />} />
+              <Route path="/import" element={<Import />} />
+              <Route path="/export" element={<Export />} />
+              <Route path="/category" element={<Category />} />
+              <Route path="/manufacturers" element={<Manufacturer />} />
+              <Route path="/employee" element={<Employee />} />
+              
               <Route path="/login" element={<Login />} />
             </Routes>
           </div>
