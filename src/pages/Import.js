@@ -347,7 +347,8 @@ const Import = () => {
     };
 
     const handleSubmit = async () => {
-        if (!formData.employeeName || !formData.supplierName || !formData.tel || !formData.address || !formData.email || !formData.details.length) {
+        console.log(formData)
+        if (!formData.supplierName || !formData.tel || !formData.address || !formData.email || !formData.details.length) {
             toast.error("Vui lòng nhập đầy đủ thông tin.");
             return;
         }
@@ -360,7 +361,7 @@ const Import = () => {
             return;
         }
         const requestData = {
-            employId: Number(formData.employeeName),
+            employId: Number(formData.employId),
             quantity: formData.details.reduce((sum, detail) => sum + Number(detail.quantity), 0),
             totalPrice: formData.details.reduce((sum, detail) => sum + (Number(detail.quantity) * Number(detail.price)), 0),
             supplierName: formData.supplierName,
