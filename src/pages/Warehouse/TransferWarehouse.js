@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import request from '../../utils/request';
-import { Modal, Box, Typography } from '@mui/material';
+import { Modal, Box, Typography, Select, MenuItem } from '@mui/material';
+import { getToken } from '../../components/constants';
 
 const TransferWarehouse = () => {
   const navigate = useNavigate();
   const [warehouses, setWarehouses] = useState([]);
+  const [currentEmployee, setCurrentEmployee] = useState(null);
   const [sourceWarehouse, setSourceWarehouse] = useState('');
   const [targetWarehouse, setTargetWarehouse] = useState('');
   const [transferDate, setTransferDate] = useState(new Date().toISOString().split('T')[0]);
@@ -16,6 +18,21 @@ const TransferWarehouse = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Get current employee from token
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      try {
+        const tokenParts = token.split('.');
+        const payload = JSON.parse(atob(tokenParts[1]));
+        setCurrentEmployee(payload);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        toast.error('Không thể lấy thông tin nhân viên');
+      }
+    }
+  }, []);
 
   // Fetch danh sách kho khi component mount
   useEffect(() => {
@@ -133,7 +150,7 @@ const TransferWarehouse = () => {
 
   // Xử lý submit form
   const handleSubmit = async () => {
-    if (!sourceWarehouse || !targetWarehouse || !transferDate || selectedProducts.length === 0) {
+    if (!sourceWarehouse || !targetWarehouse || !transferDate || !currentEmployee || selectedProducts.length === 0) {
       toast.error('Vui lòng điền đầy đủ thông tin');
       return;
     }
@@ -157,6 +174,7 @@ const TransferWarehouse = () => {
     const transferBody = {
       sourceId: parseInt(sourceWarehouse),
       targetId: parseInt(targetWarehouse),
+      employeeId: currentEmployee.id,
       description: note,
       transferDetails: selectedProducts.map(product => ({
         productId: parseInt(product.id),
@@ -210,6 +228,13 @@ const TransferWarehouse = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Phần thông tin chuyển kho */}
           <div className="space-y-4">
+            <div>
+              <label className="block mb-2 font-medium">Nhân viên thực hiện</label>
+              <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50">
+                {currentEmployee ? currentEmployee.name : 'Đang tải...'}
+              </div>
+            </div>
+
             <div>
               <label className="block mb-2 font-medium">Kho nguồn</label>
               <select

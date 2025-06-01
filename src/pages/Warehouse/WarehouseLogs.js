@@ -60,7 +60,8 @@ const WarehouseLogs = () => {
           if (isNaN(date.getTime())) return '';
           return format(date, 'dd/MM/yyyy HH:mm');
         } catch (error) {
-          return '';
+          console.error('Error formatting date:', error);
+          return params.value || '';
         }
       }
     },
@@ -137,10 +138,11 @@ const WarehouseLogs = () => {
       const response = await request.get(`Warehouse/logs?${queryParams}`);
       console.log('API Response:', response.data);
       
-      // Transform the data to include unique IDs
+      // Transform the data to include unique IDs and format dates
       const logsWithIds = Array.isArray(response.data) ? response.data.map((log, index) => ({
         ...log,
-        id: `transfer-${index}`
+        id: `transfer-${index}`,
+        createdDate: log.createdDate // Ensure createdDate is passed through
       })) : [];
       
       setTransferLogs(logsWithIds);
