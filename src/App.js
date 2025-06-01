@@ -18,6 +18,8 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Statistic from "./pages/Statistic";
 import { getToken } from './components/constants';
+import Transfer from "./pages/Warehouse/TransferWarehouse";
+import WarehouseLogs from "./pages/Warehouse/WarehouseLogs"; // Add this import
 
 import { useEffect, useRef, useState } from "react";
 
@@ -67,6 +69,8 @@ function App() {
               <Route path="/employee" element={<Employee />} />
               <Route path="/statistics" element={<Statistic />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/transfer-warehouse" element={<Transfer />} />
+              <Route path="/warehouse-logs" element={<WarehouseLogs />} />
             </Routes>
           </div>
         </div>

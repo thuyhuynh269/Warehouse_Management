@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import request from '../../utils/request';
+import { Modal, Box, Typography } from '@mui/material';
 
 const TransferWarehouse = () => {
   const navigate = useNavigate();
@@ -22,7 +23,9 @@ const TransferWarehouse = () => {
       setLoading(true);
       try {
         const warehouseResponse = await request.get('warehouse');
-        setWarehouses(warehouseResponse.data);
+        // Lọc các kho có trạng thái isActive là true
+        const activeWarehouses = warehouseResponse.data.filter(warehouse => warehouse.isActive);
+        setWarehouses(activeWarehouses);
       } catch (error) {
         console.error('Error fetching initial data:', error);
         toast.error('Lỗi khi tải dữ liệu');
@@ -141,7 +144,7 @@ const TransferWarehouse = () => {
     }
 
     // Validate quantities before proceeding
-    const invalidProducts = selectedProducts.filter(product => 
+    const invalidProducts = selectedProducts.filter(product =>
       !product.quantity || product.quantity <= 0 || product.quantity > product.available_quantity
     );
 
@@ -150,195 +153,53 @@ const TransferWarehouse = () => {
       return;
     }
 
+    // Chuẩn bị dữ liệu gửi API chuyển kho
+    const transferBody = {
+      sourceId: parseInt(sourceWarehouse),
+      targetId: parseInt(targetWarehouse),
+      description: note,
+      transferDetails: selectedProducts.map(product => ({
+        productId: parseInt(product.id),
+        quantity: parseInt(product.quantity)
+      }))
+    };
+
     try {
       setLoading(true);
-      const results = [];
-      const errors = [];
-
-      // Thực hiện chuyển kho cho từng sản phẩm
-      for (const product of selectedProducts) {
-        try {
-          console.log('=== BẮT ĐẦU CHUYỂN SẢN PHẨM ===');
-          console.log('Sản phẩm:', product);
-          
-          // 1. Kiểm tra số lượng trong kho nguồn trước khi chuyển
-          const sourceCheck = await request.get(`WarehouseDetail/GetByWarehouseAndProduct?wareId=${sourceWarehouse}&proId=${product.id}`);
-          console.log('Kiểm tra kho nguồn:', {
-            sản_phẩm: product.name,
-            số_lượng_hiện_có: sourceCheck.data?.quantity,
-            số_lượng_cần_chuyển: product.quantity
-          });
-          
-          if (!sourceCheck.data || sourceCheck.data.quantity < product.quantity) {
-            throw new Error(`Không đủ số lượng sản phẩm ${product.name} trong kho nguồn (cần: ${product.quantity}, có: ${sourceCheck.data?.quantity || 0})`);
-          }
-
-          // 2. Trừ số lượng từ kho nguồn
-          const newSourceQuantity = sourceCheck.data.quantity - product.quantity;
-          console.log('Cập nhật số lượng kho nguồn:', {
-            sản_phẩm: product.name,
-            số_lượng_cũ: sourceCheck.data.quantity,
-            số_lượng_trừ: product.quantity,
-            số_lượng_mới: newSourceQuantity
-          });
-
-          let sourceResponse;
-          try {
-            sourceResponse = await request.put(
-              `WarehouseDetail/UpdateQuantity`,
-              {
-                proId: parseInt(product.id),
-                wareId: parseInt(sourceWarehouse),
-                quantity: newSourceQuantity
-              }
-            );
-          } catch (error) {
-            console.error('Lỗi khi gọi API trừ kho nguồn:', error);
-            throw new Error(`Lỗi kết nối: Không thể cập nhật số lượng trong kho nguồn`);
-          }
-
-          if (!sourceResponse.data || sourceResponse.status !== 200) {
-            throw new Error(`Lỗi khi trừ sản phẩm ${product.name} từ kho nguồn: ${sourceResponse.data?.message || 'Không có phản hồi từ server'}`);
-          }
-
-          // 3. Kiểm tra và cập nhật kho đích
-          let targetCheck;
-          try {
-            targetCheck = await request.get(`WarehouseDetail/GetByWarehouseAndProduct?wareId=${targetWarehouse}&proId=${product.id}`);
-          } catch (error) {
-            // Nếu lỗi 404, có nghĩa là sản phẩm chưa có trong kho đích
-            if (error.response?.status === 404) {
-              targetCheck = { data: null };
-            } else {
-              console.error('Lỗi khi kiểm tra kho đích:', error);
-              // Hoàn lại số lượng cho kho nguồn
-              await request.put(
-                `WarehouseDetail/UpdateQuantity`,
-                {
-                  proId: parseInt(product.id),
-                  wareId: parseInt(sourceWarehouse),
-                  quantity: sourceCheck.data.quantity
-                }
-              );
-              throw new Error(`Lỗi kết nối: Không thể kiểm tra kho đích`);
-            }
-          }
-
-          let targetResponse;
-          try {
-            if (targetCheck.data) {
-              // 3a. Nếu sản phẩm đã có trong kho đích, cộng thêm số lượng
-              const currentTargetQuantity = targetCheck.data.quantity || 0;
-              const newTargetQuantity = currentTargetQuantity + product.quantity;
-              
-              targetResponse = await request.put(
-                `WarehouseDetail/UpdateQuantity`,
-                {
-                  proId: parseInt(product.id),
-                  wareId: parseInt(targetWarehouse),
-                  quantity: newTargetQuantity
-                }
-              );
-            } else {
-              // 3b. Nếu sản phẩm chưa có trong kho đích, tạo mới
-              targetResponse = await request.post(
-                'WarehouseDetail/Create',
-                {
-                  proId: parseInt(product.id),
-                  wareId: parseInt(targetWarehouse),
-                  quantity: product.quantity,
-                  productName: product.name,
-                  sku: product.sku || '',
-                  image: product.image || '',
-                  unit: product.unit || 'Cái'
-                }
-              );
-            }
-          } catch (error) {
-            console.error('Lỗi khi cập nhật kho đích:', error);
-            // Hoàn lại số lượng cho kho nguồn
-            await request.put(
-              `WarehouseDetail/UpdateQuantity`,
-              {
-                proId: parseInt(product.id),
-                wareId: parseInt(sourceWarehouse),
-                quantity: sourceCheck.data.quantity
-              }
-            );
-            throw new Error(`Lỗi kết nối: Không thể cập nhật kho đích`);
-          }
-
-          if (!targetResponse.data || targetResponse.status !== 200) {
-            // Nếu cập nhật kho đích thất bại, hoàn lại số lượng cho kho nguồn
-            console.log('Lỗi cập nhật kho đích, hoàn lại số lượng kho nguồn');
-            await request.put(
-              `WarehouseDetail/UpdateQuantity`,
-              {
-                proId: parseInt(product.id),
-                wareId: parseInt(sourceWarehouse),
-                quantity: sourceCheck.data.quantity
-              }
-            );
-            throw new Error(`Lỗi kết nối: Không thể cập nhật kho đích`);
-          }
-
-          results.push({
-            name: product.name,
-            quantity: product.quantity,
-            success: true
-          });
-
-          console.log(`=== HOÀN THÀNH CHUYỂN SẢN PHẨM: ${product.name} ===\n`);
-        } catch (error) {
-          console.error(`Lỗi khi chuyển sản phẩm ${product.name}:`, error);
-          errors.push({
-            name: product.name,
-            error: error.message
-          });
-        }
-      }
-
-      // Hiển thị kết quả tổng hợp
-      if (errors.length > 0) {
-        const errorMessages = errors.map(e => `${e.name}: ${e.error}`).join('\n');
-        toast.error(`Có lỗi xảy ra khi chuyển một số sản phẩm:\n${errorMessages}`, {
-          autoClose: 5000
-        });
-      }
-
-      if (results.length > 0) {
-        const successMessages = results.map(r => `${r.name}: ${r.quantity}`).join('\n');
-        toast.success(
-          `Chuyển kho thành công ${results.length} sản phẩm:\n${successMessages}`,
-          {
-            autoClose: 5000
-          }
-        );
-      }
-
-      if (results.length > 0) {
-        setTimeout(() => {
-          navigate('/warehouse');
-        }, 2000);
-      }
+      await request.post('Warehouse/transfer', transferBody);
+      toast.success('Chuyển kho thành công!');
+      setTimeout(() => {
+        navigate('/warehouse');
+      }, 1500);
     } catch (error) {
-      console.error('Lỗi tổng thể:', error);
-      toast.error('Có lỗi xảy ra trong quá trình chuyển kho');
+      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi chuyển kho');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleOpenHistoryModal = () => {
+    navigate('/warehouse-logs');
+  };
+
   return (
     <div className="p-4 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-green-800">Chuyển kho</h1>
-        <button
-          onClick={() => navigate('/warehouse')}
-          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-        >
-          Quay lại
-        </button>
+        <h1 className="text-2xl font-bold text-green-800">CHUYỂN KHO </h1>
+        <div className="flex gap-2">
+          <button
+            onClick={handleOpenHistoryModal}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Lịch sử chuyển kho
+          </button>
+          <button
+            onClick={() => navigate('/warehouse')}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+          >
+            Quay lại
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -470,7 +331,6 @@ const TransferWarehouse = () => {
                     <div key={`selected-${product.id}`} className="flex items-center justify-between p-2 border rounded-lg">
                       <div>
                         <div className="font-medium">{product.name}</div>
-                        <div className="text-sm text-gray-500">SKU: {product.sku}</div>
                       </div>
                       <div className="flex items-center gap-2">
                         <input

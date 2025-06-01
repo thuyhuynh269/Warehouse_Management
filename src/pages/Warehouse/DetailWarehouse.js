@@ -27,49 +27,64 @@ const DetailWarehouse = () => {
   const [editQuantity, setEditQuantity] = useState("");
 
   const columns = [
-    { 
-      field: "productId", 
-      headerName: "Mã SP", 
+    {
+      field: "productId",
+      headerName: "Mã SP",
       width: 60,
-      headerClassName: 'bg-gray-100 text-base'
+      headerClassName: 'bg-gray-100 text-base',
+      align: 'center',
+      headerAlign: 'center',
     },
     {
       field: "image",
       headerName: "Hình ảnh",
       width: 100,
       headerClassName: 'bg-gray-100 text-base',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: (params) => (
-        <img
-          src={params.value || '/placeholder-image.png'}
-          alt="product"
-          style={{ width: 50, height: 50, objectFit: "cover" }}
-        />
+        <div className="flex justify-center items-center h-full w-full">
+          <img
+            src={params.value || '/placeholder-image.png'}
+            alt="product"
+            style={{ width: 70, height: 70, objectFit: "contain", borderRadius: 6 }}
+          />
+        </div>
       ),
     },
-    { 
-      field: "productName", 
-      headerName: "Tên sản phẩm", 
-      width: 250,
-      headerClassName: 'bg-gray-100 text-base'
+    {
+      field: "productName",
+      headerName: "Tên sản phẩm",
+      width: 200,
+      flex: 1,
+      headerClassName: 'bg-gray-100 text-base',
+      align: 'center',
+      headerAlign: 'center',
     },
-    { 
-      field: "quantity", 
-      headerName: "Số lượng", 
+    {
+      field: "quantity",
+      headerName: "Số lượng",
       width: 100,
-      headerClassName: 'bg-gray-100 text-base'
+      headerClassName: 'bg-gray-100 text-base',
+      align: 'center',
+      headerAlign: 'center',
     },
-    { 
-      field: "unit", 
-      headerName: "Đơn vị", 
+    {
+      field: "unit",
+      headerName: "Đơn vị",
       width: 100,
-      headerClassName: 'bg-gray-100 text-base'
+      headerClassName: 'bg-gray-100 text-base',
+      align: 'center',
+      headerAlign: 'center',
     },
 {
       field: "actions",
       headerName: "Hành động",
       width: 150,
+      align: 'center',
+      headerAlign: 'center',
       renderCell: (params) => (
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-center w-full">
           {/* Nút Sửa */}
           <button
             onClick={() => handleEdit(params.row)}
@@ -170,6 +185,22 @@ const DetailWarehouse = () => {
     //fetchWarehouseProducts();
   }, [id]);
 
+  useEffect(() => {
+    if (warehouse && Array.isArray(warehouse.details)) {
+      const lowercasedSearchTerm = searchTerm.toLowerCase();
+      const newFilteredProducts = warehouse.details.filter(product =>
+        product.productName.toLowerCase().includes(lowercasedSearchTerm)
+      ).map((item, idx) => ({
+        id: idx + 1,
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        unit: item.unit,
+        image: item.image
+      }));
+      setFilteredProducts(newFilteredProducts);
+    }
+  }, [searchTerm, warehouse]);
 
   const handleAddProduct = (e) => {
     e.preventDefault();
@@ -302,35 +333,41 @@ const DetailWarehouse = () => {
         </Button>
       </div>
 
-      <div className="bg-white shadow-lg overflow-hidden">
-        <div style={{ height: 750, width: "100%" }}>
-          <DataGrid
-            rows={filteredProducts}
-            columns={columns}
-            pageSize={15}
-            rowsPerPageOptions={[15, 30, 50]}
-            checkboxSelection
-            disableSelectionOnClick
-            className="border-none text-base"
-            sx={{
-              '& .MuiDataGrid-cell': {
-                borderColor: '#f0f0f0',
-                fontSize: '1rem',
-                paddingTop: '1rem',
-                paddingBottom: '1rem'
-              },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#f9fafb',
-                borderBottom: '1px solid #e5e7eb',
-                minHeight: '60px'
-              },
-              '& .MuiDataGrid-row': {
-                minHeight: '60px'
-              }
-            }}
-          />
-        </div>
-      </div>
+      <div className="grid grid-cols-3 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
+  <div className="col-span-3">
+    <div style={{ height: 750, width: "100%" }}>
+      <DataGrid
+        rows={filteredProducts}
+        columns={columns}
+        pageSize={5}
+        rowsPerPageOptions={[5, 10, 20]}
+        className="max-h-4/5"
+        sx={{
+          '& .MuiDataGrid-cell': {
+            borderColor: '#f0f0f0',
+            fontSize: '1rem',
+            paddingTop: '1rem',
+            paddingBottom: '1rem',
+            textAlign: 'center', // Căn giữa theo chiều ngang
+            display: 'flex', // Sử dụng flex để căn đều
+            alignItems: 'center', // Căn giữa theo chiều dọc
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            backgroundColor: '#f9fafb',
+            borderBottom: '1px solid #e5e7eb',
+            minHeight: '60px'
+          },
+          '& .MuiDataGrid-row': {
+            minHeight: '60px'
+          },
+          '& .MuiDataGrid-root': {
+            border: 'none',
+          },
+        }}
+      />
+    </div>
+  </div>
+</div>
 
       <Modal
         open={isAddModalOpen}

@@ -33,25 +33,25 @@ const Table = ({
   };
 
   return (
-    <div className="container mx-auto bg-orange-50 rounded-lg p-6 shadow-2xl border-2 border-green-900">
+    <div className="container mx-auto bg-white rounded-lg p-6 shadow-md border border-gray-200">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">DANH SÁCH</h1>
         <button
-          onClick={onAddNew} // Gọi hàm xử lý khi nhấn nút
+          onClick={onAddNew}
           className="flex items-center bg-blue-900 text-white px-4 py-2 rounded-full hover:bg-blue-800 transition"
         >
           <FaPlus className="mr-2" size={16} />
           Thêm mới
         </button>
       </div>
-      <div className="overflow-x-auto shadow-md rounded-lg border-2 border-green-600 border-b-0">
+      <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200 border-b-0">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-100">
             <tr>
               {columns.map((column, index) => (
                 <th
                   key={index}
-                  className="px-8 py-4 text-center text-sm font-semibold text-gray-600 uppercase tracking-wider"
+                  className="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wider"
                 >
                   {column.Header}
                 </th>
@@ -64,21 +64,21 @@ const Table = ({
                 {columns.map((column, colIndex) => (
                   <td
                     key={colIndex}
-                    className="px-8 py-6 whitespace-nowrap text-base text-gray-800 border-y-2 border-green-600"
+                    className="px-4 py-4 whitespace-nowrap text-base text-gray-800 border-b border-gray-200"
                   >
                     {column.accessor === 'action' ? (
                       <div className="flex space-x-3">
                         <button
                           onClick={() => column.onEdit(row)}
-                          className="text-teal-600 hover:text-teal-800"
+                          className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center hover:bg-cyan-700"
                         >
-                          <FiEdit size={24} />
+                          <FiEdit size={20} className="text-white" />
                         </button>
                         <button
                           onClick={() => column.onDelete(row.id)}
-                          className="text-red-600 hover:text-red-800"
+                          className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center hover:bg-red-700"
                         >
-                          <FiTrash2 size={24} />
+                          <FiTrash2 size={20} className="text-white" />
                         </button>
                       </div>
                     ) : (
