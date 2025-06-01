@@ -187,7 +187,12 @@ const Export = () => {
               setPrintData(params.row);
               setTimeout(() => handlePrint(), 100);
             }}
-            className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center hover:bg-green-700"
+            disabled={params.row.status !== 1}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              params.row.status !== 1
+                ? 'bg-gray-300 cursor-not-allowed opacity-50'
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
             title="In PDF"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
@@ -214,7 +219,7 @@ const Export = () => {
 
   const getProducts = () => {
     request
-      .get("product")
+      .get("product?isActive=true")
       .then((response) => {
         setProducts(response.data);
       })
@@ -225,7 +230,7 @@ const Export = () => {
 
   const getWarehouses = () => {
     request
-      .get("warehouse")
+      .get("warehouse?isActive=true")
       .then((response) => {
         setWarehouses(response.data);
       })
@@ -371,7 +376,8 @@ const Export = () => {
   // Hàm xử lý khi chọn kho cho từng dòng chi tiết
   const handleWarehouseChange = async (index, wareId) => {
     updateExportDetail(index, "wareId", wareId);
-    updateExportDetail(index, "proId", "");
+    // Không reset proId về rỗng ở đây để giữ sản phẩm đã chọn khi sửa
+    // updateExportDetail(index, "proId", "");
     
     if (!wareId) {
       setProductsInWarehouses(prev => ({ ...prev, [index]: [] }));
@@ -380,19 +386,7 @@ const Export = () => {
 
     try {
       const res = await request.get(`WarehouseDetail?wareId=${wareId}`);
-
-      if (!res.data || res.data.length === 0) {
-        setProductsInWarehouses(prev => ({ ...prev, [index]: [] }));
-        return;
-      }
-
-      // Lọc chỉ lấy sản phẩm từ kho được chọn
       const warehouseProducts = res.data.filter(item => item.wareId === Number(wareId));
-
-      if (warehouseProducts.length === 0) {
-        setProductsInWarehouses(prev => ({ ...prev, [index]: [] }));
-        return;
-      }
 
       // Tính tổng số lượng cho từng sản phẩm trong kho được chọn
       const productQuantities = warehouseProducts.reduce((acc, item) => {
@@ -407,18 +401,40 @@ const Export = () => {
       }, {});
 
       // Lọc sản phẩm có số lượng > 0
-      const availableProductIds = Object.entries(productQuantities)
+      let availableProductIds = Object.entries(productQuantities)
         .filter(([_, data]) => data.quantity > 0)
         .map(([proId]) => Number(proId));
 
       // Lọc sản phẩm từ danh sách products và thêm thông tin số lượng
-      const productList = products
+      let productList = products
         .filter(product => availableProductIds.includes(product.id))
         .map(product => ({
           ...product,
-          availableQuantity: productQuantities[product.id].quantity,
-          warehouseDetail: productQuantities[product.id].warehouseDetail
+          availableQuantity: productQuantities[product.id]?.quantity || 0,
+          warehouseDetail: productQuantities[product.id]?.warehouseDetail
         }));
+
+      // --- Đảm bảo sản phẩm đã chọn luôn có trong danh sách ---
+      const currentProId = formData.exportDetails[index]?.proId;
+      if (
+        currentProId &&
+        !productList.some(product => String(product.id) === String(currentProId))
+      ) {
+        const currentProduct = products.find(
+          product => String(product.id) === String(currentProId)
+        );
+        if (currentProduct) {
+          productList = [
+            ...productList,
+            {
+              ...currentProduct,
+              availableQuantity: productQuantities[currentProduct.id]?.quantity || 0,
+              warehouseDetail: productQuantities[currentProduct.id]?.warehouseDetail
+            }
+          ];
+        }
+      }
+      // --- END FIX ---
 
       setProductsInWarehouses(prev => ({
         ...prev,
@@ -529,7 +545,7 @@ const Export = () => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="font-bold text-3xl text-green-800">Quản lý phiếu xuất</h1>
+        <h1 className="font-bold text-3xl text-green-800">DANH SÁCH PHIẾU XUẤT</h1>
         <Button
           onClick={() => {
             setSelectedExport(null);

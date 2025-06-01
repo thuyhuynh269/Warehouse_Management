@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { DataGrid } from "@mui/x-data-grid";
 import { Button } from "../../components/ui";
 import request from "../../utils/request";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
 import { Modal } from "@mui/material";
 import { HiOutlineSearch } from "react-icons/hi";
+import Table from '../../components/common/side/Table';
 
 const DetailWarehouse = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [warehouse, setWarehouse] = useState(null);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // State cho phân trang và tìm kiếm của Table
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(15);
+  const [totalProducts, setTotalProducts] = useState(0);
 
   // State cho modal thêm sản phẩm
   const [availableProducts, setAvailableProducts] = useState([]);
@@ -27,87 +32,38 @@ const DetailWarehouse = () => {
   const [editQuantity, setEditQuantity] = useState("");
 
   const columns = [
-    { 
-      field: "productId", 
-      headerName: "Mã SP", 
-      width: 60,
-      headerClassName: 'bg-gray-100 text-base'
+    {
+      Header: "Mã SP",
+      accessor: "productId",
     },
     {
-      field: "image",
-      headerName: "Hình ảnh",
-      width: 100,
-      headerClassName: 'bg-gray-100 text-base',
-      renderCell: (params) => (
+      Header: "Hình ảnh",
+      accessor: "image",
+      Cell: ({ value }) => (
         <img
-          src={params.value || '/placeholder-image.png'}
+          src={value || '/placeholder-image.png'}
           alt="product"
           style={{ width: 50, height: 50, objectFit: "cover" }}
         />
       ),
     },
-    { 
-      field: "productName", 
-      headerName: "Tên sản phẩm", 
-      width: 250,
-      headerClassName: 'bg-gray-100 text-base'
+    {
+      Header: "Tên sản phẩm",
+      accessor: "productName",
     },
-    { 
-      field: "quantity", 
-      headerName: "Số lượng", 
-      width: 100,
-      headerClassName: 'bg-gray-100 text-base'
+    {
+      Header: "Số lượng",
+      accessor: "quantity",
     },
-    { 
-      field: "unit", 
-      headerName: "Đơn vị", 
-      width: 100,
-      headerClassName: 'bg-gray-100 text-base'
+    {
+      Header: "Đơn vị",
+      accessor: "unit",
     },
-{
-      field: "actions",
-      headerName: "Hành động",
-      width: 150,
-      renderCell: (params) => (
-        <div className="flex gap-2">
-          {/* Nút Sửa */}
-          <button
-            onClick={() => handleEdit(params.row)}
-            className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center hover:bg-cyan-700"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="white"
-              strokeWidth="2"
-            >
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-            </svg>
-          </button>
-
-          {/* Nút Xóa */}
-          <button
-            onClick={() => handleDelete(params.row)}
-            className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center hover:bg-red-700"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="white"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
-      ),
+    {
+      Header: "Hành động",
+      accessor: "action",
+      onEdit: handleEdit,
+      onDelete: handleDelete,
     },
   ];
 
@@ -117,15 +73,15 @@ const DetailWarehouse = () => {
       setWarehouse(response.data);
       if (Array.isArray(response.data.details)) {
         const formatted = response.data.details.map((item, idx) => ({
-          id: idx + 1,
+          id: item.productId,
           productId: item.productId,
           productName: item.productName,
           quantity: item.quantity,
           unit: item.unit,
           image: item.image
         }));
-        setFilteredProducts(formatted);
-        console.log('filter:', formatted);
+        setProducts(formatted);
+        setTotalProducts(formatted.length);
       } else {
         toast.error("Dữ liệu sản phẩm không hợp lệ");
       }
@@ -304,30 +260,14 @@ const DetailWarehouse = () => {
 
       <div className="bg-white shadow-lg overflow-hidden">
         <div style={{ height: 750, width: "100%" }}>
-          <DataGrid
-            rows={filteredProducts}
+          <Table
             columns={columns}
-            pageSize={15}
-            rowsPerPageOptions={[15, 30, 50]}
-            checkboxSelection
-            disableSelectionOnClick
-            className="border-none text-base"
-            sx={{
-              '& .MuiDataGrid-cell': {
-                borderColor: '#f0f0f0',
-                fontSize: '1rem',
-                paddingTop: '1rem',
-                paddingBottom: '1rem'
-              },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#f9fafb',
-                borderBottom: '1px solid #e5e7eb',
-                minHeight: '60px'
-              },
-              '& .MuiDataGrid-row': {
-                minHeight: '60px'
-              }
-            }}
+            data={products}
+            totalItems={totalProducts}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            onPageIndexChange={(newIndex) => setPageIndex(newIndex)}
+            onPageSizeChange={(newSize) => setPageSize(newSize)}
           />
         </div>
       </div>
