@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-const Sidebar = () => {
+const Sidebar = ({ role }) => {
   const navItems = [
     { 
       label: "Trang chủ", 
@@ -9,7 +9,8 @@ const Sidebar = () => {
           <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
         </svg>
       ), 
-      path: "/" 
+      path: "/" ,
+      roles: ["admin", "manager","employee"]
     },
     { 
       label: "Kho hàng", 
@@ -18,7 +19,8 @@ const Sidebar = () => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
         </svg>
       ), 
-      path: "/warehouse" 
+      path: "/warehouse",
+      roles: ["admin", "manager"]
     },
     { 
       label: "Sản phẩm", 
@@ -29,7 +31,8 @@ const Sidebar = () => {
           <path d="M12 22V12"></path>
         </svg>
       ), 
-      path: "/product" 
+      path: "/product",
+      roles: ["admin", "manager"]
     },
     { 
       label: "Phiếu nhập", 
@@ -40,7 +43,8 @@ const Sidebar = () => {
           <path d="m6 15 6 6 6-6"></path>
         </svg>
       ), 
-      path: "/import" 
+      path: "/import",
+      roles: ["admin", "manager", "employee"]
     },
     { 
       label: "Phiếu xuất", 
@@ -51,7 +55,8 @@ const Sidebar = () => {
           <path d="M5 21h14"></path>
         </svg>
       ), 
-      path: "/export" 
+      path: "/export",
+      roles: ["admin", "manager", "employee"]
     },
     { 
       label: "Kho Chuyển", 
@@ -62,7 +67,8 @@ const Sidebar = () => {
           </svg>
         </div>
       ), 
-      path: "/transfer-warehouse" 
+      path: "/transfer-warehouse",
+      roles: ["admin", "manager", "employee"] 
     },
     { 
       label: "Danh mục", 
@@ -76,7 +82,8 @@ const Sidebar = () => {
           <line x1="3" y1="18" x2="3.01" y2="18"></line>
         </svg>
       ), 
-      path: "/category" 
+      path: "/category",
+      roles: ["admin", "manager"] 
     },
     { 
       label: "Nhà sản xuất", 
@@ -89,7 +96,8 @@ const Sidebar = () => {
           <path d="M9 16h4" />
         </svg>
       ), 
-      path: "/manufacturers" 
+      path: "/manufacturers",
+      roles: ["admin", "manager"]  
     },
     { 
       label: "Nhân viên", 
@@ -98,7 +106,8 @@ const Sidebar = () => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
         </svg>
       ), 
-      path: "/employee" 
+      path: "/employee",
+      roles: ["admin"] 
     },
     { 
       label: "Thống kê", 
@@ -113,9 +122,13 @@ const Sidebar = () => {
           <path d="M13 8h4" />
         </svg>
       ), 
-      path: "/statistics" 
+      path: "/statistics",
+      roles: ["admin", "manager", "employee"] 
     },
-  ];
+  ].map(item => ({
+  ...item,
+  isActive: item.roles.includes(role),
+}));
 
   return (
     <section className="flex">
@@ -136,7 +149,7 @@ const Sidebar = () => {
         {/* Navigation Items */}
         <nav className="flex-1">
           <ul className="space-y-1">
-            {navItems.map((item, index) => (
+            {navItems.filter(item => item.isActive).map((item, index) => (
               <li key={index}>
                 {item.isLogout ? (
                   <button

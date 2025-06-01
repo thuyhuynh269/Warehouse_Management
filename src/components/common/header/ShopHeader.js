@@ -5,7 +5,7 @@ import request from '../../../utils/request';
 import { getToken, removeToken } from '../../constants';
 import { toast } from 'react-toastify'
 
-function Header() {
+function Header({ name, role}) {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isWarehouseOpen, setIsWarehouseOpen] = useState(false);
   const [warehouses, setWarehouses] = useState([]);
@@ -92,7 +92,7 @@ function Header() {
             onClick={() => setIsAccountOpen(!isAccountOpen)}
             className="flex items-center px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
           >
-            Account <HiOutlineChevronDown className="ml-1 w-4 h-4" />
+            {name} - {role} <HiOutlineChevronDown className="ml-1 w-4 h-4" />
           </button>
           {/* Account Dropdown */}
           {isAccountOpen && (

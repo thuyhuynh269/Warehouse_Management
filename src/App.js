@@ -20,12 +20,15 @@ import Statistic from "./pages/Statistic";
 import { getToken } from './components/constants';
 import Transfer from "./pages/Warehouse/TransferWarehouse";
 import WarehouseLogs from "./pages/Warehouse/WarehouseLogs"; // Add this import
+import { jwtDecode } from 'jwt-decode';
 
 import { useEffect, useRef, useState } from "react";
 
 function App() {
   const headerRef = useRef(null);
   const [contentHeight, setContentHeight] = useState(window.innerHeight);
+  const [role, setRole] = useState(null);
+  const [name, setName] = useState(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -41,16 +44,30 @@ function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      const decodedToken = decodeJwtToken(token);
+      if (decodedToken && decodedToken.unique_name) {
+        setName(decodedToken.unique_name);
+      }
+
+      if (decodedToken && decodedToken.role) {
+       setRole(decodedToken.role.toLowerCase());
+      }
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <div className="min-h-screen flex flex-col">
         <div ref={headerRef}>
-          {getToken() && <Header />}
+          {getToken() && <Header name={name} role={role} />}
           {/* <Header /> */}
         </div>
         <div className="flex overflow-hidden" style={{ height: `${contentHeight}px` }}>
           <ToastContainer position="bottom-right" />
-          {getToken() && <Sidebar className="w-64" />}
+          {getToken() && <Sidebar className="w-64" role={role} />}
           {/* <Sidebar className="w-64" /> */}
           <div className="flex-1 overflow-y-auto m-3 text-gray-900 font-semibold">
             <Routes>
@@ -78,4 +95,15 @@ function App() {
     </BrowserRouter>
   );
 }
+
+function decodeJwtToken(token) {
+    try {
+        const decoded = jwtDecode(token);
+        return decoded;
+    } catch (error) {
+        console.error("Invalid token", error);
+        return null;
+    }
+}
+
 export default App;
