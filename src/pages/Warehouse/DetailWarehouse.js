@@ -3,9 +3,9 @@ import { Button } from "../../components/ui";
 import request from "../../utils/request";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
-import { Modal } from "@mui/material";
+import { Modal, Card, CardContent } from "@mui/material";
 import { HiOutlineSearch } from "react-icons/hi";
-import Table from '../../components/common/side/Table';
+import { DataGrid } from '@mui/x-data-grid';
 
 const DetailWarehouse = () => {
   const { id } = useParams();
@@ -15,11 +15,7 @@ const DetailWarehouse = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  // State cho phân trang và tìm kiếm của Table
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(15);
-  const [totalProducts, setTotalProducts] = useState(0);
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
   // State cho modal thêm sản phẩm
   const [availableProducts, setAvailableProducts] = useState([]);
@@ -31,48 +27,12 @@ const DetailWarehouse = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [editQuantity, setEditQuantity] = useState("");
 
-  const columns = [
-    {
-      Header: "Mã SP",
-      accessor: "productId",
-    },
-    {
-      Header: "Hình ảnh",
-      accessor: "image",
-      Cell: ({ value }) => (
-        <img
-          src={value || '/placeholder-image.png'}
-          alt="product"
-          style={{ width: 50, height: 50, objectFit: "cover" }}
-        />
-      ),
-    },
-    {
-      Header: "Tên sản phẩm",
-      accessor: "productName",
-    },
-    {
-      Header: "Số lượng",
-      accessor: "quantity",
-    },
-    {
-      Header: "Đơn vị",
-      accessor: "unit",
-    },
-    {
-      Header: "Hành động",
-      accessor: "action",
-      onEdit: handleEdit,
-      onDelete: handleDelete,
-    },
-  ];
-
   const fetchWarehouseDetails = async () => {
     try {
       const response = await request.get(`warehouse/${id}`);
       setWarehouse(response.data);
       if (Array.isArray(response.data.details)) {
-        const formatted = response.data.details.map((item, idx) => ({
+        const formatted = response.data.details.map((item) => ({
           id: item.productId,
           productId: item.productId,
           productName: item.productName,
@@ -81,22 +41,17 @@ const DetailWarehouse = () => {
           image: item.image
         }));
         setProducts(formatted);
-        setTotalProducts(formatted.length);
+        setFilteredProducts(formatted);
       } else {
         toast.error("Dữ liệu sản phẩm không hợp lệ");
       }
     } catch (error) {
       console.error('Error fetching warehouse details:', error);
       toast.error("Không thể tải thông tin kho");
-      //navigate("/warehouse");
     }
     finally {
       setLoading(false);
     }
-  };
-
-  const fetchWarehouseProducts = async () => {
-
   };
 
   const fetchAvailableProducts = async () => {
@@ -123,52 +78,20 @@ const DetailWarehouse = () => {
   useEffect(() => {
     fetchAvailableProducts();
     fetchWarehouseDetails();
-    //fetchWarehouseProducts();
   }, [id]);
 
-
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    if (!selectedProduct || !quantity) {
-      toast.error("Vui lòng điền đầy đủ thông tin");
-      return;
-    }
-
-    const parsedQuantity = parseInt(quantity);
-    if (isNaN(parsedQuantity) || parsedQuantity <= 0) {
-      toast.error("Số lượng phải là số nguyên dương");
-      return;
-    }
-
-    // Kiểm tra giá trị selectedProduct
-    if (!selectedProduct) {
-      toast.error("Vui lòng chọn sản phẩm");
-      return;
-    }
-
-    const data = {
-      proId: selectedProduct, // Không cần parseInt vì giá trị đã là số
-      wareId: parseInt(id),
-      quantity: parsedQuantity
-    };
-
-
-    request
-      .post("WarehouseDetail", data)
-      .then((response) => {
-        if (response && response.data) {
-          toast.success("Thêm sản phẩm vào kho thành công");
-          fetchWarehouseDetails();
-          fetchWarehouseProducts();
-          setIsAddModalOpen(false);
-          setSelectedProduct("");
-          setQuantity("");
-        }
-      })
-      .catch((error) => {
-        toast.error("Lỗi khi thêm sản phẩm vào kho");
-      });
-  };
+  useEffect(() => {
+    // Filter products whenever searchTerm changes
+    const filtered = products.filter((product) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        product.productName.toLowerCase().includes(searchLower) ||
+        product.unit.toLowerCase().includes(searchLower) ||
+        String(product.quantity).includes(searchLower)
+      );
+    });
+    setFilteredProducts(filtered);
+  }, [searchTerm, products]);
 
   const handleEdit = (product) => {
     setEditingProduct(product);
@@ -218,6 +141,106 @@ const DetailWarehouse = () => {
     }
   };
 
+  const handleAddProduct = (e) => {
+    e.preventDefault();
+    if (!selectedProduct || !quantity) {
+      toast.error("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
+
+    const parsedQuantity = parseInt(quantity);
+    if (isNaN(parsedQuantity) || parsedQuantity <= 0) {
+      toast.error("Số lượng phải là số nguyên dương");
+      return;
+    }
+
+    const data = {
+      proId: selectedProduct,
+      wareId: parseInt(id),
+      quantity: parsedQuantity
+    };
+
+    request
+      .post("WarehouseDetail", data)
+      .then((response) => {
+        if (response && response.data) {
+          toast.success("Thêm sản phẩm vào kho thành công");
+          fetchWarehouseDetails();
+          setIsAddModalOpen(false);
+          setSelectedProduct("");
+          setQuantity("");
+        }
+      })
+      .catch((error) => {
+        toast.error("Lỗi khi thêm sản phẩm vào kho");
+      });
+  };
+
+  const columns = [
+    { field: "productId", headerName: "ID", width: 70 },
+    { field: "productName", headerName: "Tên sản phẩm", width: 200, flex: 1 },
+    {
+      field: "image",
+      headerName: "Hình ảnh",
+      width: 100,
+      renderCell: (params) => (
+        params.row.image ? (
+          <img
+            src={params.row.image}
+            alt={params.row.productName}
+            style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 6 }}
+          />
+        ) : (
+          <span className="text-gray-400 italic">Không có ảnh</span>
+        )
+      )
+    },
+    { field: "unit", headerName: "Đơn vị", width: 100 },
+    { field: "quantity", headerName: "Số lượng", width: 100 },
+    {
+      field: "actions",
+      headerName: "Hành động",
+      width: 150,
+      renderCell: (params) => (
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleEdit(params.row)}
+            className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center hover:bg-cyan-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+              strokeWidth="2"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => handleDelete(params.row)}
+            className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center hover:bg-red-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   if (loading) return <div className="p-0">Đang tải...</div>;
   if (!warehouse) return <div className="p-0">Không tìm thấy thông tin kho</div>;
 
@@ -258,20 +281,22 @@ const DetailWarehouse = () => {
         </Button>
       </div>
 
-      <div className="bg-white shadow-lg overflow-hidden">
-        <div style={{ height: 750, width: "100%" }}>
-          <Table
-            columns={columns}
-            data={products}
-            totalItems={totalProducts}
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-            onPageIndexChange={(newIndex) => setPageIndex(newIndex)}
-            onPageSizeChange={(newSize) => setPageSize(newSize)}
-          />
-        </div>
+      <div className="grid grid-cols-3 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
+        <Card className="col-span-3">
+          <CardContent style={{ height: 600, width: "100%" }}>
+            <DataGrid
+              rows={filteredProducts}
+              columns={columns}
+              pageSize={10}
+              rowsPerPageOptions={[10, 25, 50]}
+              disableSelectionOnClick
+              loading={loading}
+            />
+          </CardContent>
+        </Card>
       </div>
 
+      {/* Add Modal */}
       <Modal
         open={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -339,7 +364,7 @@ const DetailWarehouse = () => {
         </div>
       </Modal>
 
-      {/* Modal Chỉnh sửa số lượng */}
+      {/* Edit Modal */}
       <Modal
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
