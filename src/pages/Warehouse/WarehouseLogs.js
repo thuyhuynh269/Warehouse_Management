@@ -44,54 +44,43 @@ const WarehouseLogs = () => {
     fetchWarehouses();
   }, []);
 
-  const formatDate = (dateString) => {
-    try {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return '';
-      return format(date, 'dd/MM/yyyy HH:mm');
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return '';
-    }
-  };
-
   // Column definitions for the DataGrid
   const columns = [
     { 
-      field: 'createdDate', 
+      field: 'transferDate', 
       headerName: 'Ngày chuyển', 
       flex: 1,
-      valueFormatter: (params) => formatDate(params?.value)
+      valueFormatter: (params) => {
+        return format(new Date(params.value), 'dd/MM/yyyy HH:mm');
+      }
     },
     { 
-      field: 'whSourceName', 
+      field: 'sourceWarehouse', 
       headerName: 'Kho nguồn', 
-      flex: 1
+      flex: 1,
+      valueGetter: (params) => params.row.sourceWarehouse?.wareName || ''
     },
     { 
-      field: 'whTargetName', 
+      field: 'targetWarehouse', 
       headerName: 'Kho đích', 
-      flex: 1
+      flex: 1,
+      valueGetter: (params) => params.row.targetWarehouse?.wareName || ''
     },
-    { 
-      field: 'productName', 
-      headerName: 'Sản phẩm', 
-      flex: 1
+    { field: 'description', headerName: 'Ghi chú', flex: 1.5 },
+    {
+      field: 'actions',
+      headerName: 'Thao tác',
+      flex: 1,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => handleViewDetails(params.row)}
+        >
+          Chi tiết
+        </Button>
+      ),
     },
-    { 
-      field: 'quantity', 
-      headerName: 'Số lượng', 
-      flex: 0.5,
-      type: 'number',
-      align: 'center',
-      headerAlign: 'center'
-    },
-    { 
-      field: 'employeeName', 
-      headerName: 'Người thực hiện', 
-      flex: 1
-    }
   ];
 
   const handleSearch = async () => {
@@ -105,11 +94,7 @@ const WarehouseLogs = () => {
       if (endDate) queryParams.append('endDate', format(endDate, 'yyyy-MM-dd'));
 
       const response = await request.get(`Warehouse/logs?${queryParams}`);
-      const logsWithIds = Array.isArray(response.data) ? response.data.map((log, index) => ({
-        ...log,
-        id: `${log.productId}_${log.createdDate}_${index}` // Create a unique ID using available data
-      })) : [];
-      setTransferLogs(logsWithIds);
+      setTransferLogs(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching transfer logs:', error);
       toast.error('Không thể tải lịch sử chuyển kho');
@@ -232,24 +217,6 @@ const WarehouseLogs = () => {
           disableSelectionOnClick
           loading={loading}
           getRowId={(row) => row.id}
-          initialState={{
-            sorting: {
-              sortModel: [{ field: 'createdDate', sort: 'desc' }],
-            },
-            pagination: {
-              pageSize: 10,
-            },
-          }}
-          sx={{
-            '& .MuiDataGrid-cell': {
-              borderRight: '1px solid #e0e0e0',
-            },
-            '& .MuiDataGrid-columnHeader': {
-              borderRight: '1px solid #e0e0e0',
-              backgroundColor: '#f5f5f5',
-              fontWeight: 'bold',
-            }
-          }}
         />
       </div>
     </div>
