@@ -8,23 +8,115 @@ import { Button, Input } from "../components/ui";
 import Typography from '@mui/material/Typography';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import ImportPrint from './ImportPrint';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+const styles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+`;
 
 const Import = () => {
     const columns = [
         { field: "id", headerName: "ID", width: 20 },
-        { field: "employId", headerName: "Nhân viên", width: 100 },
-        { field: "status", headerName: "Trạng thái", width: 20 },
+        { field: "employeeName", headerName: "Nhân viên", width: 95 },
+        {
+            field: "status",
+            headerName: "Trạng thái",
+            width: 120,
+            renderCell: (params) => {
+                const status = params.row.status;
+                return (
+                    <Select
+                        value={status}
+                        onChange={(e) => handleStatusChange(params.row.id, e.target.value)}
+                        disabled={isUpdatingStatus}
+                        className={`w-full ${status === 1
+                            ? 'bg-green-100 text-green-800'
+                            : status === 2
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                        sx={{
+                            '& .MuiSelect-select': {
+                                padding: '4px 8px',
+                                borderRadius: '9999px',
+                                fontSize: '0.875rem',
+                                fontWeight: 500,
+                            },
+                            '& .MuiOutlinedInput-notchedOutline': {
+                                border: 'none',
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                border: 'none',
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                border: 'none',
+                            },
+                        }}
+                    >
+                        <MenuItem value={0} sx={{
+                            backgroundColor: 'rgb(254 249 195)',
+                            color: 'rgb(133 77 14)',
+                            '&:hover': { backgroundColor: 'rgb(253 224 71)' },
+                            '&.Mui-selected': { backgroundColor: 'rgb(254 249 195)' }
+                        }}>
+                            Mới
+                        </MenuItem>
+                        <MenuItem value={1} sx={{
+                            backgroundColor: 'rgb(220 252 231)',
+                            color: 'rgb(22 101 52)',
+                            '&:hover': { backgroundColor: 'rgb(134 239 172)' },
+                            '&.Mui-selected': { backgroundColor: 'rgb(220 252 231)' }
+                        }}>
+                            Đang xử lí
+                        </MenuItem>
+                        <MenuItem value={2} sx={{
+                            backgroundColor: 'rgb(219, 234, 254)',
+                            color: 'rgb(30, 64, 175)',
+                            '&:hover': { backgroundColor: 'rgb(191, 219, 254)' },
+                            '&.Mui-selected': { backgroundColor: 'rgb(219, 234, 254)' }
+                        }}>
+                            Hoàn thành
+                        </MenuItem>
+                    </Select>
+                );
+            }
+        },
         { field: "supplierName", headerName: "Tên nhà cung cấp", width: 200 },
-        { field: "tel", headerName: "Số điện thoại", width: 100 },
+        { field: "tel", headerName: "Số điện thoại", width: 110 },
         { field: "address", headerName: "Địa chỉ", width: 100 },
         { field: "email", headerName: "Email", width: 100 },
         { field: "quantity", headerName: "Số lượng", width: 50 },
-        { field: "manuDate", headerName: "Ngày sản xuất", width: 170 },
-        { field: "totalPrice", headerName: "Tổng tiền", width: 70 },
+        { field: "totalPrice", headerName: "Tổng tiền", width: 140 },
+        {
+            field: "createDate",
+            headerName: "Ngày nhập",
+            width: 115,
+            renderCell: (params) => {
+                const value = params.row?.createDate;
+                return value ? formatDate(value) : "--";
+            }
+        },
         {
             field: "actions",
             headerName: "Thao tác",
-            width: 100,
+            width: 110,
             renderCell: (params) => (
                 <div className="flex gap-2">
                     <button
@@ -48,19 +140,12 @@ const Import = () => {
                         </svg>
                     </button>
                     <button
-                        onClick={() => {
-                            setSelectedImport(params.row);
-                            setFormData({
-                                employId: params.row.employId,
-                                status: params.row.status,
-                                supplierName: params.row.supplierName,
-                                tel: params.row.tel,
-                                address: params.row.address,
-                                email: params.row.email
-                            });
-                            setIsEditModalOpen(true);
-                        }}
-                        className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center hover:bg-cyan-700"
+                        onClick={() => handleEditClick(params)}
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${params.row.status === 1
+                            ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                            : 'bg-cyan-600 hover:bg-cyan-700'
+                            }`}
+                        title={params.row.status === 1 ? "Không thể chỉnh sửa phiếu đã hoàn thành" : "Chỉnh sửa"}
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -75,11 +160,24 @@ const Import = () => {
                             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
                         </svg>
                     </button>
+                    <button
+                        onClick={() => {
+                            console.log(params.row)
+                            setPrintData(params.row);
+                            setTimeout(() => handlePrint(), 100);
+                        }}
+                        className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center hover:bg-green-700"
+                        title="In PDF"
+                    ><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" strokeWidth="2" fill="none" />
+                        </svg>
+                    </button>
                 </div>
             ),
         },
     ];
-
 
     const [selectedRow, setSelectedRow] = useState(null);
     const [rows, setRows] = useState([]);
@@ -88,6 +186,7 @@ const Import = () => {
     const [employees, setEmployees] = useState([]);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [selectedImport, setSelectedImport] = useState(null);
     const [formData, setFormData] = useState({
         employName: "",
@@ -96,7 +195,7 @@ const Import = () => {
         tel: "",
         address: "",
         email: "",
-        importDetails: []
+        details: []
     });
 
     const getData = () => {
@@ -118,6 +217,15 @@ const Import = () => {
         getData();
         getProducts();
         getEmployees();
+    }, []);
+
+    useEffect(() => {
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = styles;
+        document.head.appendChild(styleSheet);
+        return () => {
+            document.head.removeChild(styleSheet);
+        };
     }, []);
 
     const getProducts = () => {
@@ -142,6 +250,55 @@ const Import = () => {
             });
     };
 
+    const handleStatusChange = async (impId, newStatus) => {
+        try {
+            setIsUpdatingStatus(true);
+            const currentImport = rows.find(row => row.id === impId);
+            if (!currentImport) {
+                throw new Error("Không tìm thấy phiếu xuất");
+            }
+
+            // Prepare the request body according to the API format
+            const requestData = {
+                status: newStatus,
+            };
+
+            const response = await request.put(`Import/List/${impId}`, requestData);
+
+            if (response && response.status === 200) {
+                // Update the local state
+                setRows(prevRows =>
+                    prevRows.map(row =>
+                        row.id === impId ? { ...row, status: newStatus } : row
+                    )
+                );
+                toast.success("Cập nhật trạng thái thành công!");
+            } else {
+                throw new Error("Không thể cập nhật trạng thái");
+            }
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || error.message || "Có lỗi xảy ra khi cập nhật trạng thái!";
+            toast.error(errorMessage);
+        } finally {
+            setIsUpdatingStatus(false);
+        }
+    };
+    const [printData, setPrintData] = useState(null);
+    const printRef = useRef();
+    const handlePrint = () => {
+        const printContents = printRef.current.innerHTML;
+        const win = window.open('', '', 'height=900,width=1200');
+        win.document.write('<html><head><title>Phiếu nhập kho</title>');
+        win.document.write('</head><body >');
+        win.document.write(printContents);
+        win.document.write('</body></html>');
+        win.document.close();
+        win.focus();
+        setTimeout(() => {
+            win.print();
+            win.close();
+        }, 500);
+    };
 
     const handleAddChange = (e) => {
         const { name, value } = e.target;
@@ -149,6 +306,28 @@ const Import = () => {
             ...prev,
             [name]: value
         }));
+    };
+    const handleEditClick = (params) => {
+        console.log(params.row)
+        setSelectedImport(params.row);
+        setFormData({
+            employeeName: String(params.row.employId),
+            totalPrice: params.row.totalPrice,
+            supplierName: params.row.supplierName,
+            tel: params.row.tel,
+            address: params.row.address,
+            email: params.row.email,
+            details: params.row.importDetails
+                ? params.row.importDetails.map(detail => ({
+                    ...detail,
+                    proId: Number(detail.proId),
+                    quantity: Number(detail.quantity),
+                    price: Number(detail.price),
+                    manuDate: formatToYYYYMMDD(detail.manuDate)
+                }))
+                : []
+        });
+        setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
@@ -162,116 +341,73 @@ const Import = () => {
             supplierName: "",
             tel: "",
             address: "",
-            email: ""
+            email: "",
+            details: []
         });
     };
 
     const handleSubmit = async () => {
-        if (!formData.employId || !formData.supplierName || !formData.tel || !formData.address) {
+        console.log(formData)
+        if (!formData.supplierName || !formData.tel || !formData.address || !formData.email || !formData.details.length) {
             toast.error("Vui lòng nhập đầy đủ thông tin.");
             return;
         }
-
         // Kiểm tra chi tiết xuất hàng
-        const invalidDetails = formData.importDetails.some(
-            detail => !detail.proId || !detail.quantity || !detail.price
+        const invalidDetails = formData.details.some(
+            detail => !detail.proId || !detail.quantity || !detail.price || !detail.manuDate
         );
         if (invalidDetails) {
             toast.error("Vui lòng nhập đầy đủ thông tin chi tiết nhập hàng.");
             return;
         }
-
+        const requestData = {
+            employId: Number(formData.employId),
+            quantity: formData.details.reduce((sum, detail) => sum + Number(detail.quantity), 0),
+            totalPrice: formData.details.reduce((sum, detail) => sum + (Number(detail.quantity) * Number(detail.price)), 0),
+            supplierName: formData.supplierName,
+            tel: formData.tel,
+            address: formData.address,
+            email: formData.email,
+            details: formData.details.map(detail => ({
+                proId: Number(detail.proId),
+                quantity: Number(detail.quantity),
+                price: Number(detail.price),
+                manuDate: formatToYYYYMMDD(detail.manuDate)
+            }))
+        };
         try {
-            // Tính tổng tiền và số lượng
-            const totalQuantity = formData.importDetails.reduce((sum, detail) => sum + Number(detail.quantity), 0);
-            const totalPrice = formData.importDetails.reduce((sum, detail) => sum + (Number(detail.quantity) * Number(detail.price)), 0);
-
-            if (!isEditModalOpen) {
-                const data = {
-                    employId: Number(formData.employId),
-                    supplierName: formData.supplierName,
-                    tel: formData.tel,
-                    address: formData.address,
-                    quantity: totalQuantity,
-                    totalPrice: totalPrice,
-                    isActive: true,
-                    importDetails: formData.importDetails.map(detail => ({
-                        proId: Number(detail.proId),
-                        quantity: Number(detail.quantity),
-                        price: Number(detail.price),
-                        manuDate: Date(detail.manuDate),
-                        isActive: true
-                    }))
-                };
-
-                console.log('Dữ liệu gửi lên:', JSON.stringify(data, null, 2));
-                try {
-                    const response = await request.post("import", data);
-                    toast.success("Thêm phiếu nhập thành công!");
-                    getData();
-                    handleCloseModal();
-                } catch (error) {
-                    console.error('Lỗi chi tiết:', error.response?.data);
-                    if (error.response?.data?.error) {
-                        toast.error(`Lỗi: ${error.response.data.error}`);
-                    } else if (error.response?.data?.message) {
-                        toast.error(`Lỗi: ${error.response.data.message}`);
-                    } else {
-                        toast.error("Có lỗi xảy ra khi thêm phiếu nhập!");
-                    }
-                }
-                return;
+            let response;
+            if (selectedImport) {
+                response = await request.put(`Import/List/${selectedImport.id}`, requestData, {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            } else {
+                response = await request.post("Import/List", requestData, {
+                    headers: { 'Content-Type': 'application/json' }
+                });
             }
-
-            const data = {
-                employId: Number(formData.employId),
-                supplierName: formData.supplierName,
-                tel: formData.tel,
-                address: formData.address,
-                quantity: totalQuantity,
-                totalPrice: totalPrice,
-                isActive: true,
-                importDetails: formData.importDetails.map(detail => ({
-                    proId: Number(detail.proId),
-                    quantity: Number(detail.quantity),
-                    price: Number(detail.price),
-                    manuDate: Date(detail.manuDate),
-                    isActive: true
-                }))
-            };
-
-            if (isEditModalOpen && selectedImport) {
-                try {
-                    const response = await request.put(`import/${selectedImport.id}`, {
-                        ...data,
-                        id: selectedImport.id
-                    });
-                    console.log(response);
-                    toast.success("Cập nhật phiếu nhập thành công!");
-                    getData();
-                    handleCloseModal();
-                } catch (error) {
-                    console.error('Lỗi chi tiết:', error.response?.data);
-                    if (error.response?.data?.error) {
-                        toast.error(`Lỗi: ${error.response.data.error}`);
-                    } else if (error.response?.data?.message) {
-                        toast.error(`Lỗi: ${error.response.data.message}`);
-                    } else {
-                        toast.error("Có lỗi xảy ra khi cập nhật phiếu nhập!");
-                    }
-                }
+            if (response && response.status === 200) {
+                toast.success(selectedImport ? "Cập nhật phiếu xuất thành công!" : "Thêm phiếu xuất thành công!");
+                getData();
+                handleCloseModal();
+            } else {
+                throw new Error(selectedImport ? "Không thể cập nhật phiếu xuất" : "Không thể tạo phiếu xuất");
             }
         } catch (error) {
-            console.error('Lỗi chi tiết:', error.response?.data);
-            toast.error("Có lỗi xảy ra khi xử lý phiếu nhập!");
+            const errorMessage = error.response?.data?.message
+                || error.response?.data?.error
+                || error.message
+                || "Có lỗi xảy ra khi xử lý phiếu xuất!";
+            toast.error(errorMessage);
         }
+
     };
 
     const addImportDetail = () => {
         setFormData(prev => ({
             ...prev,
-            importDetails: [
-                ...prev.importDetails,
+            details: [
+                ...prev.details,
                 { proId: "", quantity: "", price: "", manuDate: "" }
             ]
         }));
@@ -280,14 +416,14 @@ const Import = () => {
     const deleteImportDetail = (index) => {
         setFormData(prev => ({
             ...prev,
-            importDetails: prev.importDetails.filter((_, i) => i !== index)
+            details: prev.details.filter((_, i) => i !== index)
         }));
     };
 
     const updateImportDetail = (index, field, value) => {
         setFormData(prev => ({
             ...prev,
-            importDetails: prev.importDetails.map((detail, i) =>
+            details: prev.details.map((detail, i) =>
                 i === index ? { ...detail, [field]: value } : detail
             )
         }));
@@ -295,96 +431,118 @@ const Import = () => {
 
     return (
         <>
-            <div className="p-6">
-                <Card>
-                    <CardContent>
-                        <div className="flex justify-between items-center mb-4">
-                            <Typography variant="h5" component="h2">
-                                Quản lý phiếu nhập
-                            </Typography>
-                            <Button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M5 12h14" />
-                                    <path d="M12 5v14" />
-                                </svg>
-                                Thêm mới
-                            </Button>
-                        </div>
-                        <div style={{ height: 400, width: "100%" }}>
-                            <DataGrid
-                                rows={rows}
-                                columns={columns}
-                                pageSize={5}
-                                rowsPerPageOptions={[5]}
-                                checkboxSelection
-                                disableSelectionOnClick
-                            />
-                        </div>
+
+
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="font-bold text-3xl text-green-800">Quản lý phiếu nhập</h1>
+                <Button
+                    onClick={() => {
+                        setSelectedImport(null);
+                        setIsModalOpen(true);
+                    }}
+                    className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14" />
+                        <path d="M12 5v14" />
+                    </svg>
+                    Thêm mới
+                </Button>
+            </div>
+            <div className="grid grid-cols-3 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
+                <Card className="col-span-3">
+                    <CardContent style={{ height: "100%", width: "100%" }}>
+                        <DataGrid
+                            rows={rows}
+                            columns={columns}
+                            pageSize={5}
+                            className="max-h-4/5"
+                            disableSelectionOnClick
+                            getRowId={(row) => row.id}
+                        />
                     </CardContent>
                 </Card>
             </div>
+
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-                    <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-8 md:p-10 w-full max-w-full sm:max-w-2xl md:max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-xl shadow-2xl p-2 sm:p-6 md:p-10 w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto relative">
+                        <button
+                            onClick={handleCloseModal}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold focus:outline-none"
+                            aria-label="Đóng"
+                            type="button"
+                        >
+                            ×
+                        </button>
                         <h2 className="text-2xl font-bold text-green-800 mb-6">
-                            Thêm phiếu xuất
+                            {selectedImport ? 'Chỉnh sửa phiếu nhập' : 'Thêm phiếu nhập'}
                         </h2>
                         <form className="space-y-5">
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">Nhân viên</label>
-                                <Select
-                                    name="employId"
-                                    value={formData.employId}
-                                    onChange={handleAddChange}
-                                    className="w-full h-12 text-base"
-                                    displayEmpty
-                                >
-                                    <MenuItem value="">
-                                        <em>Chọn nhân viên</em>
-                                    </MenuItem>
-                                    {
-                                        employees.map((employee) => (
-                                            <MenuItem key={employee.id} value={String(employee.id)}>
-                                                {employee.name}
-                                            </MenuItem>
-                                        ))}
-                                </Select>
-                            </div>
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">Nhà cung cấp</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-gray-700 font-medium mb-1">Nhân viên</label>
+                                    <Select
+                                        name="employId"
+                                        value={formData.employId}
+                                        onChange={handleAddChange}
+                                        className="w-full h-12 text-base"
+                                        displayEmpty
+                                    >
+                                        <MenuItem value="">
+                                            <em>Chọn nhân viên</em>
+                                        </MenuItem>
+                                        {
+                                            employees.map((employee) => (
+                                                <MenuItem key={employee.id} value={String(employee.id)}>
+                                                    {employee.name}
+                                                </MenuItem>
+                                            ))}
+                                    </Select>
+                                </div>
+                                <div>
+                                    <label className="block text-gray-700 font-medium mb-1">Nhà cung cấp</label>
+                                    <Input
+                                        name="supplierName"
+                                        placeholder="Nhập nhà cung cấp"
+                                        value={formData.supplierName}
+                                        onChange={handleAddChange}
+                                        className="h-12 text-base w-full"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-700 font-medium mb-1">Số điện thoại</label>
+                                    <Input
+                                        name="tel"
+                                        placeholder="Nhập số điện thoại"
+                                        value={formData.tel}
+                                        onChange={handleAddChange}
+                                        className="h-12 text-base w-full"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-700 font-medium mb-1">Địa chỉ</label>
+                                    <Input
+                                        name="address"
+                                        placeholder="Nhập địa chỉ"
+                                        value={formData.address}
+                                        onChange={handleAddChange}
+                                        className="h-12 text-base w-full"
+                                    />
+                                </div>
+                                <div>
+                                <label className="block text-gray-700 font-medium mb-1">Email</label>
                                 <Input
-                                    name="supplierName"
-                                    placeholder="Nhập nhà cung cấp"
-                                    value={formData.supplierName}
+                                    name="email"
+                                    placeholder="Nhập email"
+                                    value={formData.email}
                                     onChange={handleAddChange}
-                                    className="h-12 text-base"
+                                    className="h-12 text-base w-full"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">Số điện thoại</label>
-                                <Input
-                                    name="tel"
-                                    placeholder="Nhập số điện thoại"
-                                    value={formData.tel}
-                                    onChange={handleAddChange}
-                                    className="h-12 text-base"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">Địa chỉ</label>
-                                <Input
-                                    name="address"
-                                    placeholder="Nhập địa chỉ"
-                                    value={formData.address}
-                                    onChange={handleAddChange}
-                                    className="h-12 text-base"
-                                />
                             </div>
                             <div className="border-t pt-6 mt-4">
-                                <div className="flex justify-between items-center mb-4">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                                     <h3 className="text-lg font-bold text-gray-800">Chi tiết nhập hàng</h3>
                                     <Button
                                         onClick={addImportDetail}
@@ -397,7 +555,10 @@ const Import = () => {
                                     </Button>
                                 </div>
                                 <div className="space-y-3 overflow-x-auto overflow-y-auto max-h-72">
-                                    {formData.importDetails.map((detail, index) => (
+
+                                    {
+                                    
+                                    formData.details.map((detail, index) => (
                                         <div
                                             key={index}
                                             className="flex flex-col sm:flex-row gap-2 sm:gap-4 p-3 sm:p-4 border border-gray-200 rounded-lg shadow-sm items-center bg-white hover:bg-gray-50 transition"
@@ -490,6 +651,7 @@ const Import = () => {
                                     {isEditModalOpen ? 'Cập nhật' : 'Thêm mới'}
                                 </Button>
                             </div>
+
                         </form>
                     </div>
                 </div>
@@ -500,47 +662,58 @@ const Import = () => {
                         <h2 className="text-2xl font-semibold text-green-800 mb-4">
                             Chi tiết phiếu nhập
                         </h2>
-
                         <div className="space-y-4">
-                            <div className="border-b pb-2">
-                                <label className="text-gray-600 text-sm">Nhân viên:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.employId}</p>
-                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="border-b pb-2">
+                                    <label className="text-gray-600 text-sm">Nhân viên:</label>
+                                    <p className="text-gray-900 font-medium break-words">{selectedImport.employId}</p>
+                                </div>
 
-                            <div className="border-b pb-2">
-                                <label className="text-gray-600 text-sm">Tên nhà cung cấp:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.supplierName}</p>
-                            </div>
+                                <div className="border-b pb-2">
+                                    <label className="text-gray-600 text-sm">Tên nhà cung cấp:</label>
+                                    <p className="text-gray-900 font-medium break-words">{selectedImport.supplierName}</p>
+                                </div>
 
-                            <div className="border-b pb-2">
-                                <label className="text-gray-600 text-sm">Số điện thoại:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.tel}</p>
-                            </div>
+                                <div className="border-b pb-2">
+                                    <label className="text-gray-600 text-sm">Số điện thoại:</label>
+                                    <p className="text-gray-900 font-medium">{selectedImport.tel}</p>
+                                </div>
 
-                            <div className="border-b pb-2">
-                                <label className="text-gray-600 text-sm">Địa chỉ:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.address}</p>
-                            </div>
+                                <div className="border-b pb-2">
+                                    <label className="text-gray-600 text-sm">Địa chỉ:</label>
+                                    <p className="text-gray-900 font-medium break-words">{selectedImport.address}</p>
+                                </div>
 
-                            <div className="border-b pb-2">
-                                <label className="text-gray-600 text-sm">Tổng tiền:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.totalPrice}</p>
-                            </div>
+                                <div className="border-b pb-2">
+                                    <label className="text-gray-600 text-sm">Email:</label>
+                                    <p className="text-gray-900 font-medium break-words">{selectedImport.email}</p>
+                                </div>
 
-                            <div className="border-b pb-2">
-                                <label className="text-gray-600 text-sm">Ngày sản xuất:</label>
-                                <p className="text-gray-900 font-medium">{selectedImport.manuDate}</p>
-                            </div>
+                                <div className="border-b pb-2">
+                                    <label className="text-gray-600 text-sm">Tổng tiền:</label>
+                                    <p className="text-gray-900 font-medium break-words">{selectedImport.totalPrice}</p>
+                                </div>
 
+                                <div className="border-b pb-2">
+                                    <label className="text-gray-600 text-sm">Ngày nhập:</label>
+                                    <p className="text-gray-900 font-medium">{selectedImport.createDate ? formatDate(selectedImport.createDate) : "--"}</p>
+                                </div>
+                            </div>
                             <div className="mt-4">
                                 <h3 className="text-lg font-semibold mb-2">Chi tiết nhập hàng</h3>
-                                <div className="space-y-2">
+                                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                                     {selectedImport.importDetails?.map((detail, index) => (
-                                        <div key={index} className="p-3 border rounded">
-                                            <p><strong>Sản phẩm:</strong> {detail.productName}</p>
-                                            <p><strong>Số lượng:</strong> {detail.quantity}</p>
-                                            <p><strong>Đơn giá:</strong> {detail.price}</p>
-                                            <p><strong>Ngày sản xuất:</strong> {detail.manuDate}</p>
+                                        <div key={index} className="p-3 border rounded bg-white hover:bg-gray-50 transition-colors">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                <div>
+                                                    <p><strong>Sản phẩm:</strong> {detail.productName}</p>
+                                                </div>
+                                                <div>
+                                                    <p><strong>Số lượng:</strong> {detail.quantity}</p>
+                                                    <p><strong>Đơn giá:</strong> {detail.price}</p>
+                                                    <p><strong>Ngày sản xuất:</strong> {formatDate(detail.manuDate)}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -555,9 +728,33 @@ const Import = () => {
                             </Button>
                         </div>
                     </div>
-                </div>
+                </div >
             )}
+            {
+                printData && (
+                    <div style={{ display: 'none' }}>
+                        <ImportPrint ref={printRef} data={printData} />
+                    </div>
+                )
+            }
         </>
     );
 };
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+function formatToYYYYMMDD(dateInput) {
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // tháng bắt đầu từ 0
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 export default Import;

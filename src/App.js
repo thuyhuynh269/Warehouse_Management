@@ -45,13 +45,13 @@ function App() {
     <BrowserRouter>
       <div className="min-h-screen flex flex-col">
         <div ref={headerRef}>
-          {/* {getToken() && <Header />} */}
-          <Header />
+          {getToken() && <Header />}
+          {/* <Header /> */}
         </div>
         <div className="flex overflow-hidden" style={{ height: `${contentHeight}px` }}>
           <ToastContainer position="bottom-right" />
-          {/* {getToken() && <Sidebar />} */}
-          <Sidebar className="w-64" />
+          {getToken() && <Sidebar className="w-64" />}
+          {/* <Sidebar className="w-64" /> */}
           <div className="flex-1 overflow-y-auto m-3 text-gray-900 font-semibold">
             <Routes>
               <Route path="/" element={<Dashboard />} />
