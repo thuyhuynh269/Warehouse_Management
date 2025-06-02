@@ -135,8 +135,8 @@ const DetailWarehouse = () => {
       setEditModalOpen(false);
       fetchWarehouseDetails();
     } catch (error) {
-      console.error("Lỗi khi cập nhật số lượng:", error);
-      const errorMessage = error.response?.data?.message || "Không thể cập nhật số lượng sản phẩm";
+      console.error(error.response.data);
+      const errorMessage = error.response?.data || "Không thể cập nhật số lượng sản phẩm";
       toast.error(errorMessage);
     }
   };

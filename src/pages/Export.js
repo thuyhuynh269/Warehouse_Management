@@ -306,7 +306,7 @@ const Export = () => {
         throw new Error(selectedExport ? "Không thể cập nhật phiếu xuất" : "Không thể tạo phiếu xuất");
       }
     } catch (error) {
-      console.log('API Error:', error.response);
+      console.log('API Error:', error);
       // Nếu lỗi 400 và data là string có chứa "Số lượng" hoặc "quantity"
       if (
         error.response?.status === 400 &&
@@ -316,7 +316,7 @@ const Export = () => {
           error.response.data.toLowerCase().includes('quantity')
         )
       ) {
-        toast.error("Số lượng không đủ để xuất kho");
+        toast.error(error.response.data);
       } else {
         const errorMessage = error.response?.data?.message 
           || error.response?.data?.error 

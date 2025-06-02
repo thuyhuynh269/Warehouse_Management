@@ -29,6 +29,7 @@ function App() {
   const [contentHeight, setContentHeight] = useState(window.innerHeight);
   const [role, setRole] = useState(null);
   const [name, setName] = useState(null);
+  const [id, setId] = useState(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -55,13 +56,16 @@ function App() {
       if (decodedToken && decodedToken.role) {
        setRole(decodedToken.role.toLowerCase());
       }
+      if (decodedToken && decodedToken.nameid) {
+        setId(decodedToken.nameid);
+      }
     }
   }, []);
   return (
     <BrowserRouter>
       <div className="min-h-screen flex flex-col">
         <div ref={headerRef}>
-          {getToken() && <Header name={name} role={role} />}
+          {getToken() && <Header name={name} role={role} id={id}/>}
           {/* <Header /> */}
         </div>
         <div className="flex overflow-hidden" style={{ height: `${contentHeight}px` }}>
