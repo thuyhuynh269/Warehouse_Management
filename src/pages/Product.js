@@ -302,15 +302,17 @@ const Product = () => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="font-bold text-3xl text-green-800">Danh sách sản phẩm</h1>
-        <div className="flex items-center gap-4">
-          <div className="relative">
+        <h1 className="font-bold text-3xl text-green-800 mb-4">Danh sách sản phẩm</h1>
+      </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+        <div className="flex-1">
+          <div className="relative w-full md:w-80">
             <input
               type="text"
               placeholder="Tìm kiếm sản phẩm..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
             />
             {searchQuery && (
               <button
@@ -321,6 +323,8 @@ const Product = () => {
               </button>
             )}
           </div>
+        </div>
+        <div className="flex justify-end mt-2 md:mt-0">
           <Button
             onClick={() => {
               setFormData({
