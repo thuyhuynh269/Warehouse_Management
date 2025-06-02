@@ -25,9 +25,11 @@ request.interceptors.response.use(
     error => {
         if (error.response) {
             const status = error.response.status;
-            if (status === 401 || status === 403) {
-                console.log(status);
+            if (status === 401) {
                 window.location.href = '/login';
+            }
+            if (status === 403){
+                window.location.href = '/';
             }
         }
         return Promise.reject(error);
