@@ -59,13 +59,14 @@ const Export = () => {
   const [productsInWarehouses, setProductsInWarehouses] = useState({});
   const [printData, setPrintData] = useState(null);
   const printRef = useRef();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const columns = [
     { field: "id", headerName: "ID", width: 60 },
-    { field: "consumerName", headerName: "Tên khách hàng", width: 150 },
-    { field: "tel", headerName: "Số điện thoại", width: 120 },
-    { field: "address", headerName: "Địa chỉ", width: 100 },
-    { field: "totalPrice", headerName: "Tổng tiền", width: 100 },
+    { field: "consumerName", headerName: "Tên khách hàng", width: 180 },
+    { field: "tel", headerName: "Số điện thoại", width: 140 },
+    { field: "address", headerName: "Địa chỉ", width: 150 },
+    { field: "totalPrice", headerName: "Tổng tiền", width: 120 },
     {
       field: "status",
       headerName: "Trạng thái",
@@ -123,7 +124,7 @@ const Export = () => {
     {
       field: "createDate",
       headerName: "Ngày tạo",
-      width: 110,
+      width: 130,
       renderCell: (params) => {
         const value = params.row?.createDate;
         return value ? formatDate(value) : "--";
@@ -306,11 +307,24 @@ const Export = () => {
         throw new Error(selectedExport ? "Không thể cập nhật phiếu xuất" : "Không thể tạo phiếu xuất");
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message 
-        || error.response?.data?.error 
-        || error.message 
-        || "Có lỗi xảy ra khi xử lý phiếu xuất!";
-      toast.error(errorMessage);
+      console.log('API Error:', error.response);
+      // Nếu lỗi 400 và data là string có chứa "Số lượng" hoặc "quantity"
+      if (
+        error.response?.status === 400 &&
+        typeof error.response?.data === 'string' &&
+        (
+          error.response.data.toLowerCase().includes('số lượng') ||
+          error.response.data.toLowerCase().includes('quantity')
+        )
+      ) {
+        toast.error("Số lượng không đủ để xuất kho");
+      } else {
+        const errorMessage = error.response?.data?.message 
+          || error.response?.data?.error 
+          || error.message 
+          || "Có lỗi xảy ra khi xử lý phiếu xuất!";
+        toast.error(errorMessage);
+      }
     }
   };
 
@@ -556,20 +570,33 @@ const Export = () => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="font-bold text-3xl text-green-800">DANH SÁCH PHIẾU XUẤT</h1>
-        <Button
-          onClick={() => {
-            setSelectedExport(null);
-            setIsModalOpen(true);
-          }}
-          className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
-          </svg>
-          Thêm mới
-        </Button>
+        <h1 className="font-bold text-3xl text-green-800 mb-4">DANH SÁCH PHIẾU XUẤT</h1>
+      </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Tìm kiếm phiếu xuất..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-80"
+          />
+        </div>
+        <div className="flex justify-end mt-2 md:mt-0">
+          <Button
+            onClick={() => {
+              setSelectedExport(null);
+              setIsModalOpen(true);
+            }}
+            className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
+            </svg>
+            Thêm mới
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">
@@ -623,7 +650,7 @@ const Export = () => {
                     className="h-12 text-base w-full"
                   />
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label className="block text-gray-700 font-medium mb-1">Địa chỉ</label>
                   <Input
                     name="address"

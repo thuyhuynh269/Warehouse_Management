@@ -1,15 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { DataGrid } from '@mui/x-data-grid';
 
 import { toast } from "react-toastify";
 import { Card, CardContent } from "@mui/material";
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
-import Typography from '@mui/material/Typography';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import ImportPrint from './ImportPrint';
-import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 const styles = `
   .custom-scrollbar::-webkit-scrollbar {
@@ -34,11 +32,11 @@ const styles = `
 const Import = () => {
     const columns = [
         { field: "id", headerName: "ID", width: 20 },
-        { field: "employeeName", headerName: "Nhân viên", width: 95 },
+        { field: "employeeName", headerName: "Nhân viên", width: 140 },
         {
             field: "status",
             headerName: "Trạng thái",
-            width: 120,
+            width: 140,
             renderCell: (params) => {
                 const status = params.row.status;
                 return (
@@ -116,7 +114,7 @@ const Import = () => {
         {
             field: "actions",
             headerName: "Thao tác",
-            width: 110,
+            width: 115,
             renderCell: (params) => (
                 <div className="flex gap-2">
                     {/* xem */}
@@ -164,13 +162,17 @@ const Import = () => {
                     </button>
                     <button
                         onClick={() => {
-                            console.log(params.row)
                             setPrintData(params.row);
                             setTimeout(() => handlePrint(), 100);
                         }}
-                        className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center hover:bg-green-700"
+                        disabled={params.row.status !== 1}
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${params.row.status !== 2
+                            ? 'bg-gray-300 cursor-not-allowed opacity-50'
+                            : 'bg-green-600 hover:bg-green-700'
+                            }`}
                         title="In PDF"
-                    ><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
                             <path d="M12 20h9" />
                             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
                             <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" strokeWidth="2" fill="none" />
@@ -399,8 +401,16 @@ const Import = () => {
         }
 
     };
+    const filterProducts = useMemo(() => {
+        const selectedProIds = formData.details
+            .map(detail => Number(detail.proId))
+            .filter(Boolean); // Loại bỏ các giá trị không hợp lệ
+
+        return products.filter(product => !selectedProIds.includes(product.id));
+    }, [formData.details, products]);
 
     const addImportDetail = () => {
+
         setFormData(prev => ({
             ...prev,
             details: [
@@ -420,16 +430,27 @@ const Import = () => {
     const updateImportDetail = (index, field, value) => {
         setFormData(prev => ({
             ...prev,
-            details: prev.details.map((detail, i) =>
-                i === index ? { ...detail, [field]: value } : detail
-            )
+            details: prev.details.map((detail, i) => {
+                if (i !== index) return detail;
+
+                if (field === 'proId') {
+                    const selectedProduct = products.find(p => p.id === value);
+                    return {
+                        ...detail,
+                        proId: value,
+                        price: selectedProduct ? selectedProduct.importPrice : 0
+                    };
+                }
+
+                return {
+                    ...detail,
+                    [field]: value
+                };
+            })
         }));
     };
-
     return (
         <>
-
-
             <div className="flex justify-between items-center mb-4">
                 <h1 className="font-bold text-3xl text-green-800">Quản lý phiếu nhập</h1>
                 <Button
@@ -463,7 +484,7 @@ const Import = () => {
 
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-                    <div className="bg-white rounded-xl shadow-2xl p-2 sm:p-6 md:p-10 w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto relative">
+                    <div className="bg-white rounded-xl shadow-2xl p-2 sm:p-6 md:p-5 w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto relative">
                         <button
                             onClick={handleCloseModal}
                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold focus:outline-none"
@@ -532,9 +553,7 @@ const Import = () => {
                                     </Button>
                                 </div>
                                 <div className="space-y-3 overflow-x-auto overflow-y-auto max-h-72">
-
                                     {
-
                                         formData.details.map((detail, index) => (
                                             <div
                                                 key={index}
@@ -545,15 +564,22 @@ const Import = () => {
                                                         <label className="block text-xs text-gray-500 mb-1">Sản phẩm</label>
                                                         <Select
                                                             value={detail.proId}
-                                                            onChange={(e) => updateImportDetail(index, "proId", e.target.value)}
+                                                            onChange={(e) => updateImportDetail(index, "proId", Number(e.target.value))}
                                                             className="w-full h-12 text-base"
                                                             displayEmpty
+                                                            renderValue={(selected) => {
+                                                                if (!selected) {
+                                                                    return <em>Chọn sản phẩm</em>;
+                                                                }
+                                                                const selectedProduct = products.find(product => product.id === selected);
+                                                                return selectedProduct ? selectedProduct.proName : '';
+                                                            }}
                                                         >
                                                             <MenuItem value="">
                                                                 <em>Chọn sản phẩm</em>
                                                             </MenuItem>
-                                                            {products.map((product) => (
-                                                                <MenuItem key={product.id} value={String(product.id)}>
+                                                            {filterProducts.map((product) => (
+                                                                <MenuItem key={product.id} value={product.id}>
                                                                     {product.proName}
                                                                 </MenuItem>
                                                             ))}
@@ -636,7 +662,7 @@ const Import = () => {
             {isDetailModalOpen && selectedImport && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
                     <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
-                        <h2 className="text-2xl font-semibold text-green-800 mb-4">
+                        <h2 className="text-2xl font-semibold text-green-1000 mb-4">
                             Chi tiết phiếu nhập
                         </h2>
                         <div className="space-y-4">
@@ -678,7 +704,7 @@ const Import = () => {
                             </div>
                             <div className="mt-4">
                                 <h3 className="text-lg font-semibold mb-2">Chi tiết nhập hàng</h3>
-                                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                     {selectedImport.importDetails?.map((detail, index) => (
                                         <div key={index} className="p-3 border rounded bg-white hover:bg-gray-50 transition-colors">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
