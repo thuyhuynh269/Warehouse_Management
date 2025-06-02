@@ -38,7 +38,7 @@ function Header({ name, role}) {
       removeToken();
       toast.success('Logout successful');
     }
-    //window.location.href = '/login';
+    window.location.href = '/login';
   }
 console.log("Role:", role);
 

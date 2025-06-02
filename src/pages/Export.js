@@ -5,7 +5,6 @@ import { Card, CardContent, Select, MenuItem, Paper, Typography, Box } from "@mu
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
 import ExportPrint from './ExportPrint';
-import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 // Hàm format ngày tháng
@@ -44,14 +43,12 @@ const Export = () => {
   const [rows, setRows] = useState([]);
   const [products, setProducts] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
-  const [employees, setEmployees] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedExport, setSelectedExport] = useState(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [formData, setFormData] = useState({
-    employeeName: "",
     quantity: "",
     totalPrice: "",
     consumerName: "",
@@ -65,7 +62,6 @@ const Export = () => {
 
   const columns = [
     { field: "id", headerName: "ID", width: 60 },
-    { field: "employeeName", headerName: "Nhân viên", width: 180 },
     { field: "consumerName", headerName: "Tên khách hàng", width: 150 },
     { field: "tel", headerName: "Số điện thoại", width: 120 },
     { field: "address", headerName: "Địa chỉ", width: 100 },
@@ -239,22 +235,10 @@ const Export = () => {
       });
   };
 
-  const getEmployees = () => {
-    request
-      .get("employee")
-      .then((response) => {
-        setEmployees(response.data);
-      })
-      .catch((error) => {
-        toast.error(error.message);
-      });
-  };
-
   useEffect(() => {
     getData();
     getProducts();
     getWarehouses();
-    getEmployees();
   }, []);
 
   useEffect(() => {
@@ -275,7 +259,7 @@ const Export = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.employeeName || !formData.consumerName || !formData.tel || !formData.address || !formData.exportDetails.length) {
+    if (!formData.consumerName || !formData.tel || !formData.address || !formData.exportDetails.length) {
       toast.error("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
@@ -289,7 +273,6 @@ const Export = () => {
     }
 
     const requestData = {
-      employId: Number(formData.employeeName),
       quantity: formData.exportDetails.reduce((sum, detail) => sum + Number(detail.quantity), 0),
       totalPrice: formData.exportDetails.reduce((sum, detail) => sum + (Number(detail.quantity) * Number(detail.price)), 0),
       consumerName: formData.consumerName,
@@ -337,7 +320,6 @@ const Export = () => {
     setIsDetailModalOpen(false);
     setSelectedExport(null);
     setFormData({
-      employeeName: "",
       quantity: "",
       totalPrice: "",
       consumerName: "",
@@ -365,6 +347,12 @@ const Export = () => {
   };
 
   const updateExportDetail = (index, field, value) => {
+    // Prevent negative numbers for quantity and price
+    if ((field === 'quantity' || field === 'price') && Number(value) < 0) {
+      toast.error("Không được nhập số âm");
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       exportDetails: prev.exportDetails.map((detail, i) => 
@@ -375,9 +363,16 @@ const Export = () => {
 
   // Hàm xử lý khi chọn kho cho từng dòng chi tiết
   const handleWarehouseChange = async (index, wareId) => {
+    const proId = formData.exportDetails[index]?.proId;
+    // Kiểm tra trùng kho và sản phẩm
+    const isDuplicate = formData.exportDetails.some(
+      (detail, i) => i !== index && detail.wareId === wareId && detail.proId === proId && wareId && proId
+    );
+    if (isDuplicate) {
+      toast.error("Không được chọn trùng kho và sản phẩm!");
+      return;
+    }
     updateExportDetail(index, "wareId", wareId);
-    // Không reset proId về rỗng ở đây để giữ sản phẩm đã chọn khi sửa
-    // updateExportDetail(index, "proId", "");
     
     if (!wareId) {
       setProductsInWarehouses(prev => ({ ...prev, [index]: [] }));
@@ -434,7 +429,6 @@ const Export = () => {
           ];
         }
       }
-      // --- END FIX ---
 
       setProductsInWarehouses(prev => ({
         ...prev,
@@ -446,12 +440,21 @@ const Export = () => {
     }
   };
 
+  // Khi mở form sửa, load lại danh sách sản phẩm cho từng kho (chạy sau khi setFormData)
+  useEffect(() => {
+    if (isModalOpen && selectedExport && formData.exportDetails.length > 0) {
+      formData.exportDetails.forEach((detail, idx) => {
+        if (detail.wareId) {
+          handleWarehouseChange(idx, detail.wareId);
+        }
+      });
+    }
+    // eslint-disable-next-line
+  }, [isModalOpen, selectedExport]);
+
   const handleEditClick = (params) => {
-    // Find employee by name to get id
-    const employee = employees.find(e => e.name === params.row.employeeName);
     setSelectedExport(params.row);
     setFormData({
-      employeeName: employee ? String(employee.id) : '',
       quantity: params.row.quantity,
       totalPrice: params.row.totalPrice,
       consumerName: params.row.consumerName,
@@ -467,18 +470,6 @@ const Export = () => {
     });
     setIsModalOpen(true);
   };
-
-  // Khi mở form sửa, load lại danh sách sản phẩm cho từng kho (chạy sau khi setFormData)
-  useEffect(() => {
-    if (isModalOpen && selectedExport && formData.exportDetails.length > 0) {
-      formData.exportDetails.forEach((detail, idx) => {
-        if (detail.wareId) {
-          handleWarehouseChange(idx, detail.wareId);
-        }
-      });
-    }
-    // eslint-disable-next-line
-  }, [isModalOpen, selectedExport]);
 
   const handlePrint = () => {
     const printContents = printRef.current.innerHTML;
@@ -506,7 +497,6 @@ const Export = () => {
 
       // Prepare the request body according to the API format
       const requestData = {
-        employId: currentExport.employId,
         quantity: currentExport.quantity,
         totalPrice: currentExport.totalPrice,
         consumerName: currentExport.consumerName,
@@ -540,6 +530,27 @@ const Export = () => {
     } finally {
       setIsUpdatingStatus(false);
     }
+  };
+
+  // Thêm hàm xử lý khi chọn sản phẩm
+  const handleProductChange = (index, proId) => {
+    const wareId = formData.exportDetails[index]?.wareId;
+    // Kiểm tra trùng kho và sản phẩm
+    const isDuplicate = formData.exportDetails.some(
+      (detail, i) => i !== index && detail.wareId === wareId && detail.proId === proId && wareId && proId
+    );
+    if (isDuplicate) {
+      toast.error("Không được chọn trùng kho và sản phẩm!");
+      return;
+    }
+    const product = productsInWarehouses[index]?.find(p => String(p.id) === String(proId));
+    const exportPrice = product ? product.exportPrice : '';
+    setFormData(prev => ({
+      ...prev,
+      exportDetails: prev.exportDetails.map((detail, i) =>
+        i === index ? { ...detail, proId, price: exportPrice } : detail
+      )
+    }));
   };
 
   return (
@@ -579,7 +590,6 @@ const Export = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
           <div className="bg-white rounded-xl shadow-2xl p-2 sm:p-6 md:p-10 w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto relative">
-            {/* Close button */}
             <button
               onClick={handleCloseModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold focus:outline-none"
@@ -593,25 +603,6 @@ const Export = () => {
             </h2>
             <form className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-700 font-medium mb-1">Tên nhân viên</label>
-                  <Select
-                    name="employeeName"
-                    value={employees.some(e => String(e.id) === String(formData.employeeName)) ? String(formData.employeeName) : ''}
-                    onChange={handleInputChange}
-                    className="w-full h-12 text-base"
-                    displayEmpty
-                  >
-                    <MenuItem value="">
-                      <em>Chọn nhân viên</em>
-                    </MenuItem>
-                    {employees.map((employee) => (
-                      <MenuItem key={employee.id} value={String(employee.id)}>
-                        {employee.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </div>
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">Tên khách hàng</label>
                   <Input
@@ -692,7 +683,7 @@ const Export = () => {
                                 ? String(detail.proId)
                                 : ''
                             }
-                            onChange={(e) => updateExportDetail(index, "proId", e.target.value)}
+                            onChange={(e) => handleProductChange(index, e.target.value)}
                             className="w-auto min-w-[120px]"
                             displayEmpty
                             disabled={!detail.wareId || !productsInWarehouses[index] || productsInWarehouses[index].length === 0}
@@ -713,6 +704,8 @@ const Export = () => {
                           <label className="block text-xs text-gray-500 mb-1">Số lượng</label>
                           <Input
                             type="number"
+                            min="0"
+                            step="1"
                             placeholder="Số lượng"
                             value={detail.quantity}
                             onChange={(e) => updateExportDetail(index, "quantity", e.target.value)}
@@ -723,6 +716,8 @@ const Export = () => {
                           <label className="block text-xs text-gray-500 mb-1">Đơn giá</label>
                           <Input
                             type="number"
+                            min="0"
+                            step="1000"
                             placeholder="Đơn giá"
                             value={detail.price}
                             onChange={(e) => updateExportDetail(index, "price", e.target.value)}
@@ -783,10 +778,6 @@ const Export = () => {
             </h2>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border-b pb-2">
-                  <label className="text-gray-600 text-sm">Nhân viên:</label>
-                  <p className="text-gray-900 font-medium break-words">{selectedExport.employeeName}</p>
-                </div>
                 <div className="border-b pb-2">
                   <label className="text-gray-600 text-sm">Tên khách hàng:</label>
                   <p className="text-gray-900 font-medium break-words">{selectedExport.consumerName}</p>
