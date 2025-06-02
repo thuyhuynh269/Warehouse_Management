@@ -1,15 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { DataGrid } from '@mui/x-data-grid';
 
 import { toast } from "react-toastify";
 import { Card, CardContent } from "@mui/material";
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
-import Typography from '@mui/material/Typography';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import ImportPrint from './ImportPrint';
-import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 const styles = `
   .custom-scrollbar::-webkit-scrollbar {
@@ -399,8 +397,16 @@ const Import = () => {
         }
 
     };
+    const filterProducts = useMemo(() => {
+        const selectedProIds = formData.details
+            .map(detail => Number(detail.proId))
+            .filter(Boolean); // Loại bỏ các giá trị không hợp lệ
+
+        return products.filter(product => !selectedProIds.includes(product.id));
+    }, [formData.details, products]);
 
     const addImportDetail = () => {
+
         setFormData(prev => ({
             ...prev,
             details: [
@@ -425,7 +431,7 @@ const Import = () => {
             )
         }));
     };
-
+    console.log(products)
     return (
         <>
 
@@ -545,15 +551,22 @@ const Import = () => {
                                                         <label className="block text-xs text-gray-500 mb-1">Sản phẩm</label>
                                                         <Select
                                                             value={detail.proId}
-                                                            onChange={(e) => updateImportDetail(index, "proId", e.target.value)}
+                                                            onChange={(e) => updateImportDetail(index, "proId", Number(e.target.value))}
                                                             className="w-full h-12 text-base"
                                                             displayEmpty
+                                                            renderValue={(selected) => {
+                                                                if (!selected) {
+                                                                    return <em>Chọn sản phẩm</em>;
+                                                                }
+                                                                const selectedProduct = products.find(product => product.id === selected);
+                                                                return selectedProduct ? selectedProduct.proName : '';
+                                                            }}
                                                         >
                                                             <MenuItem value="">
                                                                 <em>Chọn sản phẩm</em>
                                                             </MenuItem>
-                                                            {products.map((product) => (
-                                                                <MenuItem key={product.id} value={String(product.id)}>
+                                                            {filterProducts.map((product) => (
+                                                                <MenuItem key={product.id} value={product.id}>
                                                                     {product.proName}
                                                                 </MenuItem>
                                                             ))}
