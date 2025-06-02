@@ -23,7 +23,7 @@ const Sidebar = ({ role }) => {
       roles: ["admin", "manager", "employee"]
     },
      { 
-      label: "Kho Chuyển", 
+      label: "Kho chuyển", 
       icon: (
         <div className="text-blue-400">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
@@ -133,7 +133,7 @@ const Sidebar = ({ role }) => {
 
   return (
     <section className="flex">
-      <aside className="bg-white min-h-screen w-40 text-blue-700 px-2 py-6 flex flex-col">
+      <aside className="bg-white min-h-screen w-45 text-blue-700 px-2 py-6 flex flex-col">
         {/* User Profile Section */}
         {/* <div className="mb-6 px-4">
           <div className="flex items-center gap-3">

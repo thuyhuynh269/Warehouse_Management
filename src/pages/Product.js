@@ -302,7 +302,7 @@ const Product = () => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="font-bold text-3xl text-green-800 mb-4">Danh sách sản phẩm</h1>
+        <h1 className="font-bold text-3xl text-green-800 mb-4">DANH SÁCH SẢN PHẨM</h1>
       </div>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
         <div className="flex-1">
