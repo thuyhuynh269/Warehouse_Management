@@ -228,12 +228,7 @@ const TransferWarehouse = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Phần thông tin chuyển kho */}
           <div className="space-y-4">
-            <div>
-              <label className="block mb-2 font-medium">Nhân viên thực hiện</label>
-              <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50">
-                {currentEmployee ? currentEmployee.name : 'Đang tải...'}
-              </div>
-            </div>
+           
 
             <div>
               <label className="block mb-2 font-medium">Kho nguồn</label>
