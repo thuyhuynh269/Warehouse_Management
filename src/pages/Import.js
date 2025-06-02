@@ -141,6 +141,7 @@ const Import = () => {
                     {/* chỉnh */}
                     <button
                         onClick={() => handleEditClick(params)}
+            disabled={params.row.status === 2}
                         className={`w-10 h-10 rounded-lg flex items-center justify-center ${params.row.status === 2
                             ? 'bg-gray-400 cursor-not-allowed opacity-50'
                             : 'bg-cyan-600 hover:bg-cyan-700'
@@ -247,7 +248,7 @@ const Import = () => {
             setIsUpdatingStatus(true);
             const currentImport = rows.find(row => row.id === impId);
             if (!currentImport) {
-                throw new Error("Không tìm thấy phiếu xuất");
+                throw new Error("Không tìm thấy phiếu nhập");
             }
 
             // Prepare the request body according to the API format
@@ -342,7 +343,7 @@ const Import = () => {
             toast.error("Vui lòng nhập đầy đủ thông tin.");
             return;
         }
-        // Kiểm tra chi tiết xuất hàng
+        // Kiểm tra chi tiết nhập hàng
         const invalidDetails = formData.details.some(
             detail => !detail.proId || !detail.quantity || !detail.price || !detail.manuDate
         );
@@ -386,17 +387,17 @@ const Import = () => {
                 });
             }
             if (response && response.status === 200) {
-                toast.success(selectedImport ? "Cập nhật phiếu xuất thành công!" : "Thêm phiếu xuất thành công!");
+                toast.success(selectedImport ? "Cập nhật phiếu nhập thành công!" : "Thêm phiếu nhập thành công!");
                 getData();
                 handleCloseModal();
             } else {
-                throw new Error(selectedImport ? "Không thể cập nhật phiếu xuất" : "Không thể tạo phiếu xuất");
+                throw new Error(selectedImport ? "Không thể cập nhật phiếu nhập" : "Không thể tạo phiếu nhập");
             }
         } catch (error) {
             const errorMessage = error.response?.data?.message
                 || error.response?.data?.error
                 || error.message
-                || "Có lỗi xảy ra khi xử lý phiếu xuất!";
+                || "Có lỗi xảy ra khi xử lý phiếu nhập!";
             toast.error(errorMessage);
         }
 
@@ -565,7 +566,7 @@ const Import = () => {
                                                         <Select
                                                             value={detail.proId}
                                                             onChange={(e) => updateImportDetail(index, "proId", Number(e.target.value))}
-                                                            className="w-full h-12 text-base"
+                                                            className="w-auto min-w-[120px]"
                                                             displayEmpty
                                                             renderValue={(selected) => {
                                                                 if (!selected) {
@@ -575,6 +576,7 @@ const Import = () => {
                                                                 return selectedProduct ? selectedProduct.proName : '';
                                                             }}
                                                         >
+                                                           
                                                             <MenuItem value="">
                                                                 <em>Chọn sản phẩm</em>
                                                             </MenuItem>
@@ -651,7 +653,7 @@ const Import = () => {
                                     onClick={handleSubmit}
                                     className="bg-blue-600 text-white hover:bg-blue-700 rounded-lg px-6 py-2 font-semibold shadow"
                                 >
-                                    {isEditModalOpen ? 'Cập nhật' : 'Thêm mới'}
+                                    {selectedImport ? 'Cập nhật' : 'Thêm mới'}
                                 </Button>
                             </div>
 
