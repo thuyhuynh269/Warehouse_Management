@@ -13,17 +13,17 @@ function Header({ name, role}) {
   const navigate = useNavigate();
 
   const fetchWarehouses = async () => {
-    try {
-      const response = await request.get('warehouse');
-      if (response.data) {
-        setWarehouses(response.data);
-        if (response.data.length > 0 && !selectedWarehouse) {
-          setSelectedWarehouse(response.data[0]);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching warehouses:', error);
-    }
+    // try {
+    //   const response = await request.get('warehouse');
+    //   if (response.data) {
+    //     setWarehouses(response.data);
+    //     if (response.data.length > 0 && !selectedWarehouse) {
+    //       setSelectedWarehouse(response.data[0]);
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.error('Error fetching warehouses:', error);
+    // }
   };
 
   const handleWarehouseSelect = (warehouse) => {
@@ -38,11 +38,12 @@ function Header({ name, role}) {
       removeToken();
       toast.success('Logout successful');
     }
-    window.location.href = '/login';
+    //window.location.href = '/login';
   }
+console.log("Role:", role);
 
   useEffect(() => {
-    fetchWarehouses();
+    if (role != null && role !== "employee") fetchWarehouses();
   }, []);
 
   return (
@@ -63,13 +64,13 @@ function Header({ name, role}) {
       {/* Right Section: Buttons aligned to the right */}
       <div className="flex items-center justify-end space-x-3">
         <div className="relative">
-          <button 
+        {role !== "employee" ? <button 
             onClick={() => setIsWarehouseOpen(!isWarehouseOpen)}
             className="flex items-center px-3 py-1.5 border rounded-lg text-gray-700 text-sm"
           >
             Chọn kho: {selectedWarehouse ? selectedWarehouse.wareName : 'Chọn kho'} 
             <HiOutlineChevronDown className="ml-1 w-4 h-4" />
-          </button>
+          </button> : <></>}
           
           {/* Warehouse Dropdown */}
           {isWarehouseOpen && (
