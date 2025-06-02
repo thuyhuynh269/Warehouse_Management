@@ -209,7 +209,7 @@ const Employee = () => {
       handleCloseModal();
     } catch (error) {
       console.error('Lỗi:', error.response?.data);
-      toast.error("Có lỗi xảy ra khi xử lý!");
+      toast.error(error.response.data);
     }
   };
 

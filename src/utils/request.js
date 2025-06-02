@@ -65,12 +65,27 @@ export const post = async (path, data = {}, options = {}) => {
 };
 
 export const put = async (path, data = {}, options = {}) => {
-    const headers = {
-       // 'Authorization': `Bearer ${getToken()}`,
-        ...options.headers,
-    };
-    const response = await request.put(path, data, { ...options, headers });
-    return response.data;
+    try {
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': getToken() ? `Bearer ${getToken()}` : '',
+            ...options.headers,
+        };
+        
+        console.log(`Making PUT request to ${path} with data:`, data);
+        
+        const response = await request.put(path, data, { 
+            ...options, 
+            headers,
+            validateStatus: status => status >= 200 && status < 300
+        });
+        
+        console.log(`PUT request response:`, response);
+        return response.data;
+    } catch (error) {
+        console.error(`PUT request failed for ${path}:`, error);
+        throw error;
+    }
 };
 
 export default request

@@ -101,6 +101,7 @@ const Statistic = () => {
                             <th className="py-2 px-4 border-r-2 border-b-2">ID</th>
                             <th className="py-2 px-4 border-r-2 border-b-2">Product name</th>
                             <th className="py-2 px-4 border-r-2 border-b-2">Tồn kho</th>
+                            <th className="py-2 px-4 border-r-2 border-b-2">Chưa phân phối</th>
                             <th className="py-2 px-4 border-r-2 border-b-2">Số lượng nhập</th>
                             <th className="py-2 px-4 border-r-2 border-b-2">Tổng giá nhập</th>
                             <th className="py-2 px-4 border-r-2 border-b-2">Số xuất</th>
@@ -118,6 +119,9 @@ const Statistic = () => {
                                 </td>
                                 <td className="py-2 px-4 border-r border-t-2 text-center">
                                     {data.remainingStock}
+                                </td>
+                                <td className="py-2 px-4 border-r border-t-2 text-center">
+                                    {data.unallocatedStock}
                                 </td>
                                 <td className="py-2 px-4 border-r border-t-2 text-center">
                                     {data.totalImported}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { toast } from "react-toastify";
-import { Card, CardContent } from "@mui/material";
+import { Card, CardContent, Modal, Box, Typography } from "@mui/material";
 import request from "../../utils/request";
 import { Button } from "../../components/ui";
 import Switch from "@mui/material/Switch";
@@ -12,6 +12,8 @@ const Warehouse = () => {
   const navigate = useNavigate();
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [viewingWarehouse, setViewingWarehouse] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRows, setFilteredRows] = useState([]);
 
@@ -58,6 +60,23 @@ const Warehouse = () => {
       width: 150,
       renderCell: (params) => (
         <div className="flex gap-2">
+          <button
+            onClick={() => handleViewDetails(params.row)}
+            className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
           <button
             onClick={() => handleUpdateData(params)}
             disabled={!params.row.isActive}
@@ -108,6 +127,16 @@ const Warehouse = () => {
   const handleUpdateData = (params) => {
     setSelectedWarehouse(params.row);
     setIsEditModalOpen(true);
+  };
+
+  const handleViewDetails = (warehouse) => {
+    setViewingWarehouse(warehouse);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setViewingWarehouse(null);
   };
 
   return (
@@ -191,6 +220,57 @@ const Warehouse = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Detail Modal */}
+      <Modal
+        open={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+        className="flex items-center justify-center"
+      >
+        <Box className="bg-white rounded-lg shadow-lg p-5 w-full max-w-md m-4">
+          <Typography variant="h6" component="h2" className="text-xl font-bold mb-6 text-green-700">
+            Chi tiết kho
+          </Typography>
+          {viewingWarehouse && (
+            <div className="space-y-4">
+              <div className="border-b pb-3">
+                <p className="text-gray-600 mb-1">ID:</p>
+                <p className="text-lg text-gray-900">{viewingWarehouse.id}</p>
+              </div>
+              <div className="border-b pb-3">
+                <p className="text-gray-600 mb-1">Tên kho:</p>
+                <p className="text-lg text-gray-900">{viewingWarehouse.wareName}</p>
+              </div>
+              <div className="border-b pb-3">
+                <p className="text-gray-600 mb-1">Địa chỉ:</p>
+                <p className="text-lg text-gray-900">{viewingWarehouse.address}</p>
+              </div>
+              <div className="border-b pb-3">
+                <p className="text-gray-600 mb-1">Điện thoại:</p>
+                <p className="text-lg text-gray-900">{viewingWarehouse.tel}</p>
+              </div>
+              <div className="border-b pb-3">
+                <p className="text-gray-600 mb-1">Email:</p>
+                <p className="text-lg text-gray-900">{viewingWarehouse.email}</p>
+              </div>
+              <div className="border-b pb-3">
+                <p className="text-gray-600 mb-1">Trạng thái:</p>
+                <p className={`text-lg ${viewingWarehouse.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                  {viewingWarehouse.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
+                </p>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end mt-6">
+            <Button
+              onClick={handleCloseDetailModal}
+              className="bg-gray-500 text-white hover:bg-gray-600 px-5 py-2 rounded-lg"
+            >
+              Đóng
+            </Button>
+          </div>
+        </Box>
+      </Modal>
 
       {isEditModalOpen && selectedWarehouse && (
         <EditWarehouseModal
