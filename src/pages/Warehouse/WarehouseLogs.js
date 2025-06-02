@@ -17,6 +17,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import request from '../../utils/request';
+import { formatDate } from '../../utils/format';
 
 const WarehouseLogs = () => {
   const navigate = useNavigate();
@@ -53,17 +54,17 @@ const WarehouseLogs = () => {
       headerName: 'Ngày chuyển', 
       flex: 1,
       minWidth: 150,
-      valueFormatter: (params) => {
-        if (!params?.value) return '';
-        try {
-          const date = new Date(params.value);
-          if (isNaN(date.getTime())) return '';
-          return format(date, 'dd/MM/yyyy HH:mm');
-        } catch (error) {
-          console.error('Error formatting date:', error);
-          return params.value || '';
-        }
-      }
+      // valueFormatter: (params) => {
+      //   if (!params?.value) return '';
+      //   try {
+      //     const date = new Date(params.value);
+      //     if (isNaN(date.getTime())) return '';
+      //     return format(date, 'dd/MM/yyyy HH:mm');
+      //   } catch (error) {
+      //     console.error('Error formatting date:', error);
+      //     return params.value || '';
+      //   }
+      // }
     },
     { 
       field: 'whSourceName', 
@@ -142,7 +143,7 @@ const WarehouseLogs = () => {
       const logsWithIds = Array.isArray(response.data) ? response.data.map((log, index) => ({
         ...log,
         id: `transfer-${index}`,
-        createdDate: log.createdDate // Ensure createdDate is passed through
+        createdDate: formatDate(log.createdDate) // Ensure createdDate is passed through
       })) : [];
       
       setTransferLogs(logsWithIds);

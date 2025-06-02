@@ -106,20 +106,26 @@ const Manufacturer = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
-        const handleToggle = () => {
-          const newStatus = !params.row.isActive;
-          request
-            .put(`manufacturers/${params.row.id}`, {
-              ...params.row,
-              isActive: newStatus,
-            })
-            .then(() => {
-              toast.success("Cập nhật trạng thái thành công!");
-              getData();
-            })
-            .catch((error) => {
-              toast.error(error.message);
-            });
+        const handleToggle = async () => {
+          try {
+            const newStatus = !params.row.isActive;
+            const updatedData = {
+              id: params.row.id,
+              manuName: params.row.manuName,
+              address: params.row.address,
+              tel: params.row.tel,
+              email: params.row.email,
+              website: params.row.website,
+              isActive: newStatus
+            };
+
+            await request.put(`manufacturers/${params.row.id}`, updatedData);
+            toast.success("Cập nhật trạng thái thành công!");
+            getData(); // Refresh data after successful update
+          } catch (error) {
+            console.error("Error updating status:", error);
+            toast.error(error.response?.data?.message || "Không thể cập nhật trạng thái.");
+          }
         };
 
         return (

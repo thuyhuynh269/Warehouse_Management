@@ -119,6 +119,7 @@ const Import = () => {
             width: 110,
             renderCell: (params) => (
                 <div className="flex gap-2">
+                    {/* xem */}
                     <button
                         onClick={() => {
                             setSelectedImport(params.row);
@@ -139,13 +140,14 @@ const Import = () => {
                             <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                     </button>
+                    {/* chỉnh */}
                     <button
                         onClick={() => handleEditClick(params)}
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${params.row.status === 1
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${params.row.status === 2
                             ? 'bg-gray-400 cursor-not-allowed opacity-50'
                             : 'bg-cyan-600 hover:bg-cyan-700'
                             }`}
-                        title={params.row.status === 1 ? "Không thể chỉnh sửa phiếu đã hoàn thành" : "Chỉnh sửa"}
+                        title={params.row.status === 2 ? "Không thể chỉnh sửa phiếu đã hoàn thành" : "Chỉnh sửa"}
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -183,7 +185,6 @@ const Import = () => {
     const [rows, setRows] = useState([]);
     const [products, setProducts] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [employees, setEmployees] = useState([]);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -216,7 +217,6 @@ const Import = () => {
     useEffect(() => {
         getData();
         getProducts();
-        getEmployees();
     }, []);
 
     useEffect(() => {
@@ -239,16 +239,6 @@ const Import = () => {
             });
     };
 
-    const getEmployees = () => {
-        request
-            .get("employee")
-            .then((response) => {
-                setEmployees(response.data);
-            })
-            .catch((error) => {
-                toast.error(error.message);
-            });
-    };
 
     const handleStatusChange = async (impId, newStatus) => {
         try {
@@ -311,7 +301,6 @@ const Import = () => {
         console.log(params.row)
         setSelectedImport(params.row);
         setFormData({
-            employeeName: String(params.row.employId),
             totalPrice: params.row.totalPrice,
             supplierName: params.row.supplierName,
             tel: params.row.tel,
@@ -336,7 +325,6 @@ const Import = () => {
         setIsDetailModalOpen(false);
         setSelectedImport(null);
         setFormData({
-            employName: "",
             status: "",
             supplierName: "",
             tel: "",
@@ -358,6 +346,15 @@ const Import = () => {
         );
         if (invalidDetails) {
             toast.error("Vui lòng nhập đầy đủ thông tin chi tiết nhập hàng.");
+            return;
+        }
+        const createDate = new Date(formData.createDate || new Date());
+        const hasInvalidManuDate = formData.details.some((detail) => {
+            const manuDate = new Date(detail.manuDate);
+            return manuDate > createDate;
+        });
+        if (hasInvalidManuDate) {
+            toast.error("Ngày sản xuất không được lớn hơn ngày tạo phiếu.");
             return;
         }
         const requestData = {
@@ -481,26 +478,6 @@ const Import = () => {
                         <form className="space-y-5">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-gray-700 font-medium mb-1">Nhân viên</label>
-                                    <Select
-                                        name="employId"
-                                        value={formData.employId}
-                                        onChange={handleAddChange}
-                                        className="w-full h-12 text-base"
-                                        displayEmpty
-                                    >
-                                        <MenuItem value="">
-                                            <em>Chọn nhân viên</em>
-                                        </MenuItem>
-                                        {
-                                            employees.map((employee) => (
-                                                <MenuItem key={employee.id} value={String(employee.id)}>
-                                                    {employee.name}
-                                                </MenuItem>
-                                            ))}
-                                    </Select>
-                                </div>
-                                <div>
                                     <label className="block text-gray-700 font-medium mb-1">Nhà cung cấp</label>
                                     <Input
                                         name="supplierName"
@@ -531,15 +508,15 @@ const Import = () => {
                                     />
                                 </div>
                                 <div>
-                                <label className="block text-gray-700 font-medium mb-1">Email</label>
-                                <Input
-                                    name="email"
-                                    placeholder="Nhập email"
-                                    value={formData.email}
-                                    onChange={handleAddChange}
-                                    className="h-12 text-base w-full"
-                                />
-                            </div>
+                                    <label className="block text-gray-700 font-medium mb-1">Email</label>
+                                    <Input
+                                        name="email"
+                                        placeholder="Nhập email"
+                                        value={formData.email}
+                                        onChange={handleAddChange}
+                                        className="h-12 text-base w-full"
+                                    />
+                                </div>
                             </div>
                             <div className="border-t pt-6 mt-4">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
@@ -557,84 +534,84 @@ const Import = () => {
                                 <div className="space-y-3 overflow-x-auto overflow-y-auto max-h-72">
 
                                     {
-                                    
-                                    formData.details.map((detail, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex flex-col sm:flex-row gap-2 sm:gap-4 p-3 sm:p-4 border border-gray-200 rounded-lg shadow-sm items-center bg-white hover:bg-gray-50 transition"
-                                        >
-                                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-center flex-1 w-full">
-                                                <div className="flex-1 w-full sm:w-48">
-                                                    <label className="block text-xs text-gray-500 mb-1">Sản phẩm</label>
-                                                    <Select
-                                                        value={detail.proId}
-                                                        onChange={(e) => updateImportDetail(index, "proId", e.target.value)}
-                                                        className="w-full h-12 text-base"
-                                                        displayEmpty
-                                                    >
-                                                        <MenuItem value="">
-                                                            <em>Chọn sản phẩm</em>
-                                                        </MenuItem>
-                                                        {products.map((product) => (
-                                                            <MenuItem key={product.id} value={String(product.id)}>
-                                                                {product.proName}
+
+                                        formData.details.map((detail, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex flex-col sm:flex-row gap-2 sm:gap-4 p-3 sm:p-4 border border-gray-200 rounded-lg shadow-sm items-center bg-white hover:bg-gray-50 transition"
+                                            >
+                                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-center flex-1 w-full">
+                                                    <div className="flex-1 w-full sm:w-48">
+                                                        <label className="block text-xs text-gray-500 mb-1">Sản phẩm</label>
+                                                        <Select
+                                                            value={detail.proId}
+                                                            onChange={(e) => updateImportDetail(index, "proId", e.target.value)}
+                                                            className="w-full h-12 text-base"
+                                                            displayEmpty
+                                                        >
+                                                            <MenuItem value="">
+                                                                <em>Chọn sản phẩm</em>
                                                             </MenuItem>
-                                                        ))}
-                                                    </Select>
+                                                            {products.map((product) => (
+                                                                <MenuItem key={product.id} value={String(product.id)}>
+                                                                    {product.proName}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </div>
+                                                    <div className="flex-1 w-full sm:w-32">
+                                                        <label className="block text-xs text-gray-500 mb-1">Số lượng</label>
+                                                        <Input
+                                                            type="number"
+                                                            placeholder="Số lượng"
+                                                            value={detail.quantity}
+                                                            onChange={(e) => updateImportDetail(index, "quantity", e.target.value)}
+                                                            className="h-12 text-base"
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 w-full sm:w-32">
+                                                        <label className="block text-xs text-gray-500 mb-1">Đơn giá</label>
+                                                        <Input
+                                                            type="number"
+                                                            placeholder="Đơn giá"
+                                                            value={detail.price}
+                                                            onChange={(e) => updateImportDetail(index, "price", e.target.value)}
+                                                            className="h-12 text-base"
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 w-full sm:w-32">
+                                                        <label className="block text-xs text-gray-500 mb-1">Ngày sản xuất</label>
+                                                        <Input
+                                                            type="date"
+                                                            placeholder="Ngày sản xuất"
+                                                            value={detail.manuDate}
+                                                            onChange={(e) => updateImportDetail(index, "manuDate", e.target.value)}
+                                                            className="h-12 text-base"
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1 w-full sm:w-32">
-                                                    <label className="block text-xs text-gray-500 mb-1">Số lượng</label>
-                                                    <Input
-                                                        type="number"
-                                                        placeholder="Số lượng"
-                                                        value={detail.quantity}
-                                                        onChange={(e) => updateImportDetail(index, "quantity", e.target.value)}
-                                                        className="h-12 text-base"
-                                                    />
-                                                </div>
-                                                <div className="flex-1 w-full sm:w-32">
-                                                    <label className="block text-xs text-gray-500 mb-1">Đơn giá</label>
-                                                    <Input
-                                                        type="number"
-                                                        placeholder="Đơn giá"
-                                                        value={detail.price}
-                                                        onChange={(e) => updateImportDetail(index, "price", e.target.value)}
-                                                        className="h-12 text-base"
-                                                    />
-                                                </div>
-                                                <div className="flex-1 w-full sm:w-32">
-                                                    <label className="block text-xs text-gray-500 mb-1">Ngày sản xuất</label>
-                                                    <Input
-                                                        type="date"
-                                                        placeholder="Ngày sản xuất"
-                                                        value={detail.manuDate}
-                                                        onChange={(e) => updateImportDetail(index, "manuDate", e.target.value)}
-                                                        className="h-12 text-base"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex-shrink-0 flex items-center h-12">
-                                                <button
-                                                    onClick={() => deleteImportDetail(index)}
-                                                    className="text-red-600 hover:text-white hover:bg-red-500 transition rounded-full p-2"
-                                                    style={{ minWidth: 40 }}
-                                                    title="Xóa chi tiết"
-                                                >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        width="24"
-                                                        height="24"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                        strokeWidth="2"
+                                                <div className="flex-shrink-0 flex items-center h-12">
+                                                    <button
+                                                        onClick={() => deleteImportDetail(index)}
+                                                        className="text-red-600 hover:text-white hover:bg-red-500 transition rounded-full p-2"
+                                                        style={{ minWidth: 40 }}
+                                                        title="Xóa chi tiết"
                                                     >
-                                                        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width="24"
+                                                            height="24"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                        >
+                                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
                                 </div>
                             </div>
                             <div className="flex justify-end gap-4 mt-8">

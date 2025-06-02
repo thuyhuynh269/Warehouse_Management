@@ -11,7 +11,6 @@ const TransferWarehouse = () => {
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [sourceWarehouse, setSourceWarehouse] = useState('');
   const [targetWarehouse, setTargetWarehouse] = useState('');
-  const [transferDate, setTransferDate] = useState(new Date().toISOString().split('T')[0]);
   const [note, setNote] = useState('');
   const [allProducts, setAllProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -150,7 +149,7 @@ const TransferWarehouse = () => {
 
   // Xử lý submit form
   const handleSubmit = async () => {
-    if (!sourceWarehouse || !targetWarehouse || !transferDate || !currentEmployee || selectedProducts.length === 0) {
+    if (!sourceWarehouse || !targetWarehouse || !currentEmployee || selectedProducts.length === 0) {
       toast.error('Vui lòng điền đầy đủ thông tin');
       return;
     }
@@ -176,6 +175,7 @@ const TransferWarehouse = () => {
       targetId: parseInt(targetWarehouse),
       employeeId: currentEmployee.id,
       description: note,
+      createdDate: new Date().toISOString(),
       transferDetails: selectedProducts.map(product => ({
         productId: parseInt(product.id),
         quantity: parseInt(product.quantity)
@@ -269,16 +269,6 @@ const TransferWarehouse = () => {
                   ))
                 }
               </select>
-            </div>
-
-            <div>
-              <label className="block mb-2 font-medium">Ngày chuyển</label>
-              <input
-                type="date"
-                value={transferDate}
-                onChange={(e) => setTransferDate(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
             </div>
 
             <div>

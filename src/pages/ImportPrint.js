@@ -13,8 +13,9 @@ const formatDate = (dateString) => {
 const ImportPrint = forwardRef(({ data = [] }, ref) => {
   const supplierName = data.supplierName || '';
   // Tổng tiền
-  const totalPrice = data.totalPrice || data.importDetails?.reduce((sum, item) => sum + (item.quantity * item.price), 0) || 0;
-console.log(data)
+  const totalPrice = data.importDetails?.reduce((sum, item) => sum + (item.quantity * item.price), 0) || 0;
+
+  console.log(data)
   return (
     <div ref={ref} style={{ fontFamily: 'Times New Roman, Arial, serif', color: '#000', width: '900px', margin: '0 auto', background: '#fff', padding: 32 }}>
       <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 22, margin: '16px 0' }}>PHIẾU NHẬP KHO</div>
