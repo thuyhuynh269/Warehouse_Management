@@ -214,7 +214,7 @@ const Product = () => {
   }, []);
 
   const handleSubmit = async () => {
-    if (!formData.productName || !formData.unit || !formData.expiry || !formData.selectedCategory || !formData.selectedManufacturer) {
+    if (!formData.productName || !formData.unit || !formData.selectedCategory || !formData.selectedManufacturer) {
       toast.error("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
@@ -289,7 +289,7 @@ const Product = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     // Chặn số âm cho giá nhập và giá xuất, giống updateExportDetail ở Export.js
-    if ((name === 'importPrice' || name === 'exportPrice') && Number(value) < 0) {
+    if ((name === 'importPrice' || name === 'exportPrice' || name === 'expiry') && Number(value) < 0) {
       toast.error("Không được nhập số âm");
       return;
     }
