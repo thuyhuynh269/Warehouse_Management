@@ -151,7 +151,7 @@ if (role !== "employee") {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="font-bold text-3xl text-green-800">Danh sách kho hàng</h1>
+        <h1 className="font-bold text-3xl text-green-800">DANH SÁCH KHO HÀNG</h1>
       </div>
       <div className="flex justify-between items-center mb-4">
         <div className="relative">
@@ -171,25 +171,20 @@ if (role !== "employee") {
           {role !== "employee" &&
             <button 
               onClick={() => navigate("/add-warehouse")}
-              className="bg-[#00B4D8] hover:bg-[#0096c7] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+              className="bg-[#2196F3] hover:bg-[#1976D2] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"/>
-                <polyline points="2.32 6.16 12 11 21.68 6.16"/>
-                <line x1="12" y1="22.76" x2="12" y2="11"/>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
               Thêm kho
             </button>
             }
           <button 
             onClick={() => navigate("/transfer-warehouse")}
-            className="bg-[#00B4D8] hover:bg-[#0096c7] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+            className="bg-[#4CAF50] hover:bg-[#388E3C] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="12" y1="18" x2="12" y2="12"/>
-              <line x1="9" y1="15" x2="15" y2="15"/>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
             </svg>
             Chuyển kho
           </button>
@@ -201,7 +196,7 @@ if (role !== "employee") {
                 toast.warning('Vui lòng chọn kho trước!');
               }
             }}
-            className="bg-[#00B4D8] hover:bg-[#0096c7] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+            className="bg-[#FF9800] hover:bg-[#F57C00] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM12 17v-6M8 17v-4m8 4v-8"/>

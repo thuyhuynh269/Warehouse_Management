@@ -81,10 +81,10 @@ const AddWarehouse = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-green-800">
-          Thêm kho mới
+          THÊM KHO MỚI
         </h2>
         <Button
           onClick={() => navigate("/warehouse")}
@@ -193,7 +193,7 @@ const AddWarehouse = () => {
             onClick={handleSubmit}
             className="bg-blue-600 text-white hover:bg-blue-700"
           >
-            Lưu
+            Thêm
           </Button>
           <Button
             onClick={() => navigate("/warehouse")}
