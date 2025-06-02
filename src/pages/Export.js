@@ -62,10 +62,10 @@ const Export = () => {
 
   const columns = [
     { field: "id", headerName: "ID", width: 60 },
-    { field: "consumerName", headerName: "Tên khách hàng", width: 150 },
-    { field: "tel", headerName: "Số điện thoại", width: 120 },
-    { field: "address", headerName: "Địa chỉ", width: 100 },
-    { field: "totalPrice", headerName: "Tổng tiền", width: 100 },
+    { field: "consumerName", headerName: "Tên khách hàng", width: 180 },
+    { field: "tel", headerName: "Số điện thoại", width: 140 },
+    { field: "address", headerName: "Địa chỉ", width: 150 },
+    { field: "totalPrice", headerName: "Tổng tiền", width: 120 },
     {
       field: "status",
       headerName: "Trạng thái",
@@ -123,7 +123,7 @@ const Export = () => {
     {
       field: "createDate",
       headerName: "Ngày tạo",
-      width: 110,
+      width: 130,
       renderCell: (params) => {
         const value = params.row?.createDate;
         return value ? formatDate(value) : "--";
@@ -306,11 +306,24 @@ const Export = () => {
         throw new Error(selectedExport ? "Không thể cập nhật phiếu xuất" : "Không thể tạo phiếu xuất");
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message 
-        || error.response?.data?.error 
-        || error.message 
-        || "Có lỗi xảy ra khi xử lý phiếu xuất!";
-      toast.error(errorMessage);
+      console.log('API Error:', error.response);
+      // Nếu lỗi 400 và data là string có chứa "Số lượng" hoặc "quantity"
+      if (
+        error.response?.status === 400 &&
+        typeof error.response?.data === 'string' &&
+        (
+          error.response.data.toLowerCase().includes('số lượng') ||
+          error.response.data.toLowerCase().includes('quantity')
+        )
+      ) {
+        toast.error("Số lượng không đủ để xuất kho");
+      } else {
+        const errorMessage = error.response?.data?.message 
+          || error.response?.data?.error 
+          || error.message 
+          || "Có lỗi xảy ra khi xử lý phiếu xuất!";
+        toast.error(errorMessage);
+      }
     }
   };
 
