@@ -22,7 +22,9 @@ const Product = () => {
     expiry: "",
     selectedCategory: "",
     selectedManufacturer: "",
-    isActive: true
+    isActive: true,
+    importPrice: 0,
+    exportPrice: 0
   });
 
   const columns = [
@@ -48,6 +50,8 @@ const Product = () => {
     { field: "expiry", headerName: "Hạn sử dụng", width: 100 },
     { field: "categoryName", headerName: "Danh mục", width: 150 },
     { field: "manufacturerName", headerName: "Nhà sản xuất", width: 150 },
+    { field: "quantity", headerName: "Tổng số lượng", width: 120 },
+    { field: "unallocatedStock", headerName: "SL chưa phân phối", width: 150 },
     {
       field: "isActive",
       headerName: "Trạng thái",
@@ -123,7 +127,9 @@ const Product = () => {
                 expiry: params.row.expiry,
                 selectedCategory: category ? String(category.id) : "",
                 selectedManufacturer: manufacturer ? String(manufacturer.id) : "",
-                isActive: params.row.isActive
+                isActive: params.row.isActive,
+                importPrice: params.row.importPrice,
+                exportPrice: params.row.exportPrice
               });
               setIsEditModalOpen(true);
             }}
@@ -146,7 +152,7 @@ const Product = () => {
       ),
     },
   ];
-
+//tìm kiếm
   useEffect(() => {
     // Filter rows whenever searchQuery or rows change
     const filtered = rows.filter((row) => {
@@ -222,7 +228,9 @@ const Product = () => {
           image: formData.image,
           unit: formData.unit,
           expiry: Number(formData.expiry),
-          isActive: true
+          isActive: true,
+          importPrice: Number(formData.importPrice),
+          exportPrice: Number(formData.exportPrice)
         };
         const response = await request.post("product", data);
         toast.success(response.data.message || "Thêm sản phẩm thành công!");
@@ -240,7 +248,9 @@ const Product = () => {
         expiry: Number(formData.expiry),
         quantity: selectedProduct?.quantity,
         createdDate: selectedProduct?.createdDate,
-        isActive: isEditModalOpen ? formData.isActive : true
+        isActive: isEditModalOpen ? formData.isActive : true,
+        importPrice: Number(formData.importPrice),
+        exportPrice: Number(formData.exportPrice)
       };
 
       if (isEditModalOpen && selectedProduct) {
@@ -270,12 +280,19 @@ const Product = () => {
       expiry: "",
       selectedCategory: "",
       selectedManufacturer: "",
-      isActive: true
+      isActive: true,
+      importPrice: 0,
+      exportPrice: 0
     });
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    // Chặn số âm cho giá nhập và giá xuất, giống updateExportDetail ở Export.js
+    if ((name === 'importPrice' || name === 'exportPrice') && Number(value) < 0) {
+      toast.error("Không được nhập số âm");
+      return;
+    }
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -285,7 +302,7 @@ const Product = () => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="font-bold text-3xl text-green-800">DANH SÁCH SẢN PHẨM</h1>
+        <h1 className="font-bold text-3xl text-green-800">Danh sách sản phẩm</h1>
         <div className="flex items-center gap-4">
           <div className="relative">
             <input
@@ -313,7 +330,9 @@ const Product = () => {
                 expiry: "",
                 selectedCategory: "",
                 selectedManufacturer: "",
-                isActive: true
+                isActive: true,
+                importPrice: 0,
+                exportPrice: 0
               });
               setIsModalOpen(true);
             }}
@@ -344,24 +363,41 @@ const Product = () => {
       {/* Add/Edit Modal */}
       {(isModalOpen || isEditModalOpen) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl relative">
             <h2 className="text-2xl font-semibold text-green-800 mb-4">
               {isEditModalOpen ? 'Sửa thông tin sản phẩm' : 'Thêm sản phẩm mới'}
             </h2>
-            <div className="space-y-4">
-              <Input
-                name="productName"
-                placeholder="Tên sản phẩm"
-                value={formData.productName}
-                onChange={handleInputChange}
-              />
-              
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               <div>
+                <label htmlFor="productName" className="block text-gray-700 mb-1">Tên sản phẩm</label>
+                <Input
+                  name="productName"
+                  id="productName"
+                  placeholder="Nhập tên sản phẩm"
+                  value={formData.productName}
+                  onChange={handleInputChange}
+                  className="w-full min-w-[260px] h-12"
+                />
+              </div>
+              <div>
+                <label htmlFor="unit" className="block text-gray-700 mb-1">Đơn vị</label>
+                <Input
+                  name="unit"
+                  id="unit"
+                  placeholder="Nhập đơn vị"
+                  value={formData.unit}
+                  onChange={handleInputChange}
+                  className="w-full min-w-[260px] h-12"
+                />
+              </div>
+              <div>
+                <label htmlFor="selectedCategory" className="block text-gray-700 mb-1">Danh mục</label>
                 <Select
                   name="selectedCategory"
+                  id="selectedCategory"
                   value={formData.selectedCategory}
                   onChange={handleInputChange}
-                  className="w-full border border-gray-200 rounded-lg"
+                  className="w-full min-w-[260px] h-12 border border-gray-200 rounded-lg"
                   displayEmpty
                 >
                   <MenuItem value="">
@@ -374,13 +410,14 @@ const Product = () => {
                   ))}
                 </Select>
               </div>
-
               <div>
+                <label htmlFor="selectedManufacturer" className="block text-gray-700 mb-1">Nhà sản xuất</label>
                 <Select
                   name="selectedManufacturer"
+                  id="selectedManufacturer"
                   value={formData.selectedManufacturer}
                   onChange={handleInputChange}
-                  className="w-full border border-gray-200 rounded-lg"
+                  className="w-full min-w-[260px] h-12 border border-gray-200 rounded-lg"
                   displayEmpty
                 >
                   <MenuItem value="">
@@ -393,36 +430,64 @@ const Product = () => {
                   ))}
                 </Select>
               </div>
-
-              <Input
-                name="image"
-                placeholder="Đường dẫn ảnh"
-                value={formData.image}
-                onChange={handleInputChange}
-              />
-
-              <Input
-                name="unit"
-                placeholder="Đơn vị"
-                value={formData.unit}
-                onChange={handleInputChange}
-              />
-
-              <Input
-                name="expiry"
-                placeholder="Hạn sử dụng (tháng)"
-                type="number"
-                value={formData.expiry}
-                onChange={handleInputChange}
-              />
-
-              <Switch
-                checked={formData.isActive}
-                onChange={e => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                color="primary"
-                inputProps={{ "aria-label": "status toggle" }}
-              />
-              <span>{formData.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}</span>
+              <div>
+                <label htmlFor="expiry" className="block text-gray-700 mb-1">Hạn sử dụng (tháng)</label>
+                <Input
+                  name="expiry"
+                  id="expiry"
+                  placeholder="Hạn sử dụng (tháng)"
+                  type="number"
+                  value={formData.expiry}
+                  onChange={handleInputChange}
+                  className="w-full min-w-[260px] h-12"
+                />
+              </div>
+              <div>
+                <label htmlFor="image" className="block text-gray-700 mb-1">Đường dẫn ảnh</label>
+                <Input
+                  name="image"
+                  id="image"
+                  placeholder="Đường dẫn ảnh"
+                  value={formData.image}
+                  onChange={handleInputChange}
+                  className="w-full min-w-[260px] h-12"
+                />
+              </div>
+              <div>
+                <label htmlFor="importPrice" className="block text-gray-700 mb-1">Giá nhập</label>
+                <Input
+                  name="importPrice"
+                  id="importPrice"
+                  placeholder="Giá nhập"
+                  type="number"
+                  value={formData.importPrice}
+                  onChange={handleInputChange}
+                  className="w-full min-w-[260px] h-12"
+                  min={0}
+                />
+              </div>
+              <div>
+                <label htmlFor="exportPrice" className="block text-gray-700 mb-1">Giá xuất</label>
+                <Input
+                  name="exportPrice"
+                  id="exportPrice"
+                  placeholder="Giá xuất"
+                  type="number"
+                  value={formData.exportPrice}
+                  onChange={handleInputChange}
+                  className="w-full min-w-[260px] h-12"
+                  min={0}
+                />
+              </div>
+              <div className="col-span-2 flex items-center gap-2 mt-2">
+                <Switch
+                  checked={formData.isActive}
+                  onChange={e => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                  color="primary"
+                  inputProps={{ "aria-label": "status toggle" }}
+                />
+                <span>{formData.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}</span>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
@@ -488,6 +553,16 @@ const Product = () => {
                 <div className="border-b pb-2">
                   <label className="text-gray-600 text-sm">Hạn sử dụng:</label>
                   <p className="text-gray-900 font-medium">{selectedProduct.expiry} Tháng</p>
+                </div>
+
+                <div className="border-b pb-2">
+                  <label className="text-gray-600 text-sm">Giá nhập:</label>
+                  <p className="text-gray-900 font-medium">{selectedProduct.importPrice.toLocaleString('vi-VN')} VNĐ</p>
+                </div>
+
+                <div className="border-b pb-2">
+                  <label className="text-gray-600 text-sm">Giá xuất:</label>
+                  <p className="text-gray-900 font-medium">{selectedProduct.exportPrice.toLocaleString('vi-VN')} VNĐ</p>
                 </div>
 
                 <div className="border-b pb-2">
