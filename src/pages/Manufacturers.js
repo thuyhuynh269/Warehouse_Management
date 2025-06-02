@@ -23,6 +23,7 @@ const Manufacturer = () => {
     tel: "",
     email: "",
     website: "",
+    isActive: true,
   });
 
   const handleOpenAddModal = () => {
@@ -32,6 +33,7 @@ const Manufacturer = () => {
       tel: "",
       email: "",
       website: "",
+      isActive: true,
     });
     setIsAddModalOpen(true);
   };
@@ -48,6 +50,7 @@ const Manufacturer = () => {
       tel: "",
       email: "",
       website: "",
+      isActive: true,
     });
   };
 
@@ -59,6 +62,7 @@ const Manufacturer = () => {
       tel: manufacturer.tel,
       email: manufacturer.email,
       website: manufacturer.website,
+      isActive: manufacturer.isActive,
     });
     setIsEditModalOpen(true);
   };
@@ -78,7 +82,7 @@ const Manufacturer = () => {
     {
       field: "isActive",
       headerName: "Trạng thái",
-      width: 150,
+      width: 100,
       headerClassName: 'bg-gray-100 text-base',
       align: 'center',
       headerAlign: 'center',
@@ -86,7 +90,7 @@ const Manufacturer = () => {
         const handleToggle = () => {
           const newStatus = !params.row.isActive;
           request
-            .put(`manufacturers/${params.row.id}`, {
+            .put(`Manufacturers/${params.row.id}`, {
               ...params.row,
               isActive: newStatus,
             })
@@ -208,6 +212,7 @@ const Manufacturer = () => {
         tel: formData.tel,
         email: formData.email,
         website: formData.website,
+        isActive: formData.isActive,
       };
       const response = await request.post("manufacturers", data);
       toast.success(response.data.message || "Thêm nhà sản xuất thành công!");
@@ -232,6 +237,7 @@ const Manufacturer = () => {
         tel: formData.tel,
         email: formData.email,
         website: formData.website,
+        isActive: formData.isActive,
       };
       const response = await request.put(`manufacturers/${selectedManufacturer.id}`, data);
       toast.success(response.data.message || "Cập nhật nhà sản xuất thành công!");
@@ -378,6 +384,18 @@ const Manufacturer = () => {
                 className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
+            <div className="mb-4 flex items-center">
+              <label className="block text-sm font-medium text-gray-700 mr-2" htmlFor="isActive">
+                Trạng thái hoạt động:
+              </label>
+              <Switch
+                id="isActive"
+                name="isActive"
+                checked={formData.isActive}
+                onChange={handleInputChange}
+                color="primary"
+              />
+            </div>
             <div className="flex justify-end gap-4">
               <Button
                 type="button"
@@ -432,6 +450,10 @@ const Manufacturer = () => {
               <div className="mb-4">
                 <p className="text-sm font-medium text-gray-700">Website:</p>
                 <p className="text-base text-gray-900">{viewingManufacturer.website}</p>
+              </div>
+              <div className="mb-4">
+                <p className="text-sm font-medium text-gray-700">Trạng thái hoạt động:</p>
+                <p className="text-base text-gray-900">{viewingManufacturer.isActive ? "Hoạt động" : "Không hoạt động"}</p>
               </div>
             </div>
           )}

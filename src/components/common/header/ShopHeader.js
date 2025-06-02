@@ -57,7 +57,6 @@ console.log("Role:", role);
         />
         <div>
           <h1 className="font-bold text-xl text-green-800">Warehouse Management</h1>
-          <p className="text-gray-500 text-xs">@phamhien</p>
         </div>
       </div>
 
