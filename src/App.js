@@ -75,7 +75,7 @@ function App() {
           <div className="flex-1 overflow-y-auto m-3 text-gray-900 font-semibold">
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/warehouse" element={<Warehouse />} />
+              <Route path="/warehouse" element={<Warehouse role={role} />} />
               <Route path="/warehouse/:id" element={<DetailWarehouse />} />
               <Route path="/add-warehouse" element={<AddWarehouse />} />
               <Route path="/warehouse/edit/:id" element={<EditWarehouse />} />

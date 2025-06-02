@@ -172,7 +172,7 @@ const DetailWarehouse = () => {
         }
       })
       .catch((error) => {
-        toast.error("Lỗi khi thêm sản phẩm vào kho");
+        toast.error(error.response?.data || "Không thể thêm sản phẩm vào kho");
       });
   };
 

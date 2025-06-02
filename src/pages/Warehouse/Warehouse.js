@@ -8,7 +8,7 @@ import Switch from "@mui/material/Switch";
 import EditWarehouseModal from "./EditWarehouse";
 import { useNavigate } from "react-router-dom";
 
-const Warehouse = () => {
+const Warehouse = ({role}) => {
   const navigate = useNavigate();
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -18,11 +18,16 @@ const Warehouse = () => {
   const [filteredRows, setFilteredRows] = useState([]);
 
   const columns = [
-    { field: "id", headerName: "ID", width: 50 },
-    { field: "wareName", headerName: "Tên kho", width: 200 },
-    { field: "address", headerName: "Địa chỉ", width: 300 },
-    { field: "tel", headerName: "Điện thoại", width: 150 },
-    { field: "email", headerName: "Email", width: 200 },
+  { field: "id", headerName: "ID", width: 50 },
+  { field: "wareName", headerName: "Tên kho", width: 200 },
+  { field: "address", headerName: "Địa chỉ", width: 300 },
+  { field: "tel", headerName: "Điện thoại", width: 150 },
+  { field: "email", headerName: "Email", width: 200 },
+];
+
+// Chỉ thêm cột Trạng thái và Hành động nếu không phải là employee
+if (role !== "employee") {
+  columns.push(
     {
       field: "isActive",
       headerName: "Trạng thái",
@@ -64,6 +69,7 @@ const Warehouse = () => {
             onClick={() => handleViewDetails(params.row)}
             className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700"
           >
+            {/* View icon */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -82,6 +88,7 @@ const Warehouse = () => {
             disabled={!params.row.isActive}
             className={`w-10 h-10 rounded-lg flex items-center justify-center ${params.row.isActive ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-gray-400 cursor-not-allowed'}`}
           >
+            {/* Edit icon */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -97,8 +104,10 @@ const Warehouse = () => {
           </button>
         </div>
       ),
-    },
-  ];
+    }
+  );
+}
+
 
   const [rows, setRows] = useState([]);
 
@@ -159,17 +168,19 @@ const Warehouse = () => {
         </div>
 
         <div className="flex gap-4">
-          <button 
-            onClick={() => navigate("/add-warehouse")}
-            className="bg-[#00B4D8] hover:bg-[#0096c7] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"/>
-              <polyline points="2.32 6.16 12 11 21.68 6.16"/>
-              <line x1="12" y1="22.76" x2="12" y2="11"/>
-            </svg>
-            Thêm kho
-          </button>
+          {role !== "employee" &&
+            <button 
+              onClick={() => navigate("/add-warehouse")}
+              className="bg-[#00B4D8] hover:bg-[#0096c7] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"/>
+                <polyline points="2.32 6.16 12 11 21.68 6.16"/>
+                <line x1="12" y1="22.76" x2="12" y2="11"/>
+              </svg>
+              Thêm kho
+            </button>
+            }
           <button 
             onClick={() => navigate("/transfer-warehouse")}
             className="bg-[#00B4D8] hover:bg-[#0096c7] text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"

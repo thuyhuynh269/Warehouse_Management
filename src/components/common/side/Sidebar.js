@@ -20,7 +20,7 @@ const Sidebar = ({ role }) => {
         </svg>
       ), 
       path: "/warehouse",
-      roles: ["admin", "manager"]
+      roles: ["admin", "manager", "employee"]
     },
     { 
       label: "Sản phẩm", 

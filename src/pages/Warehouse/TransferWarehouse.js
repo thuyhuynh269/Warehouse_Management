@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import request from '../../utils/request';
-import { Modal, Box, Typography, Select, MenuItem } from '@mui/material';
-import { getToken } from '../../components/constants';
 
 const TransferWarehouse = () => {
   const navigate = useNavigate();
   const [warehouses, setWarehouses] = useState([]);
-  const [currentEmployee, setCurrentEmployee] = useState(null);
   const [sourceWarehouse, setSourceWarehouse] = useState('');
   const [targetWarehouse, setTargetWarehouse] = useState('');
   const [note, setNote] = useState('');
@@ -17,21 +14,6 @@ const TransferWarehouse = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // Get current employee from token
-  useEffect(() => {
-    const token = getToken();
-    if (token) {
-      try {
-        const tokenParts = token.split('.');
-        const payload = JSON.parse(atob(tokenParts[1]));
-        setCurrentEmployee(payload);
-      } catch (error) {
-        console.error('Error decoding token:', error);
-        toast.error('Không thể lấy thông tin nhân viên');
-      }
-    }
-  }, []);
 
   // Fetch danh sách kho khi component mount
   useEffect(() => {
@@ -149,7 +131,7 @@ const TransferWarehouse = () => {
 
   // Xử lý submit form
   const handleSubmit = async () => {
-    if (!sourceWarehouse || !targetWarehouse || !currentEmployee || selectedProducts.length === 0) {
+    if (!sourceWarehouse || !targetWarehouse || selectedProducts.length === 0) {
       toast.error('Vui lòng điền đầy đủ thông tin');
       return;
     }
@@ -173,7 +155,6 @@ const TransferWarehouse = () => {
     const transferBody = {
       sourceId: parseInt(sourceWarehouse),
       targetId: parseInt(targetWarehouse),
-      employeeId: currentEmployee.id,
       description: note,
       createdDate: new Date().toISOString(),
       transferDetails: selectedProducts.map(product => ({
