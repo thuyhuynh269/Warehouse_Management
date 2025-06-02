@@ -72,25 +72,6 @@ const Manufacturer = () => {
     setIsDetailModalOpen(true);
   };
 
-  const handleDeleteClick = async (manufacturer) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa nhà sản xuất "${manufacturer.manuName}"?`)) {
-      try {
-        console.log("Attempting to delete manufacturer with ID:", manufacturer.id);
-        const response = await request.delete(`manufacturers/${manufacturer.id}`);
-        console.log("Delete API response:", response);
-        toast.success("Xóa nhà sản xuất thành công!");
-        
-        // Manually update the state to remove the deleted item
-        setRows(prevRows => prevRows.filter(row => row.id !== manufacturer.id));
-        // The useEffect for filteredRows will handle updating filteredRows automatically
-        
-      } catch (error) {
-        console.error("Error deleting manufacturer:", error);
-        toast.error(error.response?.data?.message || "Không thể xóa nhà sản xuất.");
-      }
-    }
-  };
-
   const columns = [
     { field: "id", headerName: "ID", width: 50, headerClassName: 'bg-gray-100 text-base', align: 'center', headerAlign: 'center' },
     { field: "manuName", headerName: "Tên nhà sản xuất", width: 200, flex: 1, headerClassName: 'bg-gray-100 text-base', align: 'center', headerAlign: 'center' },
@@ -106,26 +87,20 @@ const Manufacturer = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
-        const handleToggle = async () => {
-          try {
-            const newStatus = !params.row.isActive;
-            const updatedData = {
-              id: params.row.id,
-              manuName: params.row.manuName,
-              address: params.row.address,
-              tel: params.row.tel,
-              email: params.row.email,
-              website: params.row.website,
-              isActive: newStatus
-            };
-
-            await request.put(`manufacturers/${params.row.id}`, updatedData);
-            toast.success("Cập nhật trạng thái thành công!");
-            getData(); // Refresh data after successful update
-          } catch (error) {
-            console.error("Error updating status:", error);
-            toast.error(error.response?.data?.message || "Không thể cập nhật trạng thái.");
-          }
+        const handleToggle = () => {
+          const newStatus = !params.row.isActive;
+          request
+            .put(`Manufacturers/${params.row.id}`, {
+              ...params.row,
+              isActive: newStatus,
+            })
+            .then(() => {
+              toast.success("Cập nhật trạng thái thành công!");
+              getData();
+            })
+            .catch((error) => {
+              toast.error(error.message);
+            });
         };
 
         return (
@@ -180,22 +155,6 @@ const Manufacturer = () => {
             >
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => handleDeleteClick(params.row)}
-            className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center hover:bg-red-700"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="white"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>
         </div>
@@ -253,7 +212,7 @@ const Manufacturer = () => {
         tel: formData.tel,
         email: formData.email,
         website: formData.website,
-        isActive: true,
+        isActive: formData.isActive,
       };
       const response = await request.post("manufacturers", data);
       toast.success(response.data.message || "Thêm nhà sản xuất thành công!");
