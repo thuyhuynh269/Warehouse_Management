@@ -571,32 +571,19 @@ const Export = () => {
     <>
       <div className="flex justify-between items-center mb-4">
         <h1 className="font-bold text-3xl text-green-800 mb-4">DANH SÁCH PHIẾU XUẤT</h1>
-      </div>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="Tìm kiếm phiếu xuất..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-80"
-          />
-        </div>
-        <div className="flex justify-end mt-2 md:mt-0">
-          <Button
-            onClick={() => {
-              setSelectedExport(null);
-              setIsModalOpen(true);
-            }}
-            className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14" />
-              <path d="M12 5v14" />
-            </svg>
-            Thêm mới
-          </Button>
-        </div>
+        <Button
+          onClick={() => {
+            setSelectedExport(null);
+            setIsModalOpen(true);
+          }}
+          className="bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-2 flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14" />
+            <path d="M12 5v14" />
+          </svg>
+          Thêm mới
+        </Button>
       </div>
 
       <div className="grid grid-cols-3 md:grid-cols-2 w-full border-solid border-2 border-green-300 rounded-lg p-4">

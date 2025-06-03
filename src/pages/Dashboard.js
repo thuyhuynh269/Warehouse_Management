@@ -1,10 +1,10 @@
-
 import { useEffect, useState, useRef } from "react";
 import { Input } from "../components/ui";
 import { toast } from "react-toastify";
 import { formatDate } from "../utils/format";
 import * as request from "../utils/request";
 import Chart from 'chart.js/auto';
+import DashboardPrint from './DashboardPrint';
 
 
 const Dashboard = () => {
@@ -26,6 +26,9 @@ const Dashboard = () => {
     const importPieChartRef = useRef(null);
     const exportPieChartRef = useRef(null);
     const [statisticData, setStatisticData] = useState([]);
+
+    const printRef = useRef();
+    const [printData, setPrintData] = useState(null);
 
     useEffect(() => {
         if (!statisticData.length || !importPieRef.current || !exportPieRef.current || !canvasCountRef.current || !canvasPriceRef.current) return;
@@ -177,12 +180,36 @@ const Dashboard = () => {
         handleView();
     }, [fromDate, toDate]);
 
+    const handlePrint = () => {
+        const printContents = printRef.current.innerHTML;
+        const win = window.open('', '', 'height=900,width=1200');
+        win.document.write('<html><head><title>Báo cáo</title>');
+        win.document.write('</head><body >');
+        win.document.write(printContents);
+        win.document.write('</body></html>');
+        win.document.close();
+        win.focus();
+        setTimeout(() => {
+            win.print();
+            win.close();
+        }, 500);
+    };
+
     return (
         <div>
             <div className="flex flex-col sm:flex-row items-center justify-between p-4">
                 <h1 className="font-bold text-3xl text-green-800 mb-4">
                     DASHBOARD
                 </h1>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setPrintData(statisticData); setTimeout(() => handlePrint(), 100); }}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+                    Xuất PDF
+                  </button>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
                     <div className="flex items-center gap-2">
                         <label className="text-green-900 text-xl float-start">Từ</label>
@@ -222,6 +249,11 @@ const Dashboard = () => {
                 </div>
 
             </div>
+            {printData && (
+              <div style={{ display: 'none' }}>
+                <DashboardPrint ref={printRef} data={printData} fromDate={fromDate} toDate={toDate} />
+              </div>
+            )}
         </div>
     );
 };
