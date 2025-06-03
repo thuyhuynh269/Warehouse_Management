@@ -167,7 +167,7 @@ const WarehouseLogs = () => {
   return (
     <div className="p-6 max-w-[1400px] mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-green-800">Lịch Sử Chuyển Kho</h1>
+        <h1 className="text-2xl font-bold text-green-800">LỊCH SỬ CHUYỂN KHO</h1>
         <Button
           variant="outlined"
           color="primary"

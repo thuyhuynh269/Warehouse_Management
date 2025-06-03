@@ -184,7 +184,7 @@ const TransferWarehouse = () => {
   return (
     <div className="p-4 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-green-800">CHUYỂN KHO </h1>
+        <h1 className="text-3xl font-bold text-[#006837] ">CHUYỂN KHO</h1>
         <div className="flex gap-2">
           <button
             onClick={handleOpenHistoryModal}

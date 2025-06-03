@@ -81,17 +81,11 @@ const AddWarehouse = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-green-800">
-          Thêm kho mới
+        <h2 className="text-3xl font-bold text-[#006837] w-full" >
+          THÊM KHO MỚI
         </h2>
-        <Button
-          onClick={() => navigate("/warehouse")}
-          className="bg-gray-500 text-white hover:bg-gray-600"
-        >
-          Quay lại
-        </Button>
       </div>
 
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -105,12 +99,31 @@ const AddWarehouse = () => {
               required
             />
             <Input
-              label="Địa chỉ nhà/số nhà"
-              placeholder="Số nhà, tên đường"
-              value={addressDetail}
-              onChange={(e) => setAddressDetail(e.target.value)}
+              label="Email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
+            <Input
+              label="Số điện thoại"
+              placeholder="Số điện thoại"
+              value={tel}
+              onChange={(e) => setTel(e.target.value)}
+              required
+            />
+           
+
+            <div className="flex flex-col">
+              <label className="mb-1 font-medium">Địa chỉ đầy đủ</label>
+              <div className="p-2 bg-gray-50 border border-gray-300 rounded-md min-h-[42px]">
+                {getFullAddress() || "Địa chỉ sẽ hiện ở đây"}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            
             
             <div className="flex flex-col">
               <label className="mb-1 font-medium">Tỉnh/Thành phố</label>
@@ -144,9 +157,6 @@ const AddWarehouse = () => {
                 ))}
               </select>
             </div>
-          </div>
-
-          <div className="space-y-4">
             <div className="flex flex-col">
               <label className="mb-1 font-medium">Phường/Xã</label>
               <select
@@ -163,26 +173,11 @@ const AddWarehouse = () => {
                 ))}
               </select>
             </div>
-
-            <div className="flex flex-col">
-              <label className="mb-1 font-medium">Địa chỉ đầy đủ</label>
-              <div className="p-2 bg-gray-50 border border-gray-300 rounded-md min-h-[42px]">
-                {getFullAddress() || "Địa chỉ sẽ hiện ở đây"}
-              </div>
-            </div>
-
             <Input
-              label="Số điện thoại"
-              placeholder="Số điện thoại"
-              value={tel}
-              onChange={(e) => setTel(e.target.value)}
-              required
-            />
-            <Input
-              label="Email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              label="Địa chỉ nhà/số nhà"
+              placeholder="Số nhà, tên đường"
+              value={addressDetail}
+              onChange={(e) => setAddressDetail(e.target.value)}
               required
             />
           </div>
@@ -193,7 +188,7 @@ const AddWarehouse = () => {
             onClick={handleSubmit}
             className="bg-blue-600 text-white hover:bg-blue-700"
           >
-            Lưu
+            Thêm
           </Button>
           <Button
             onClick={() => navigate("/warehouse")}

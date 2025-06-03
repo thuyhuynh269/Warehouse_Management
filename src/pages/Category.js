@@ -253,7 +253,7 @@ const Category = () => {
 
   return (
     <div className="p-0">
-      <h1 className="font-bold text-3xl text-green-800 mb-8">Danh mục sản phẩm</h1>
+      <h1 className="font-bold text-3xl text-green-800 mb-8">DANH SÁCH DANH MỤC</h1>
 
       <div className="flex justify-between items-center mb-3 px-4">
         <div className="relative">

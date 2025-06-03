@@ -453,7 +453,7 @@ const Import = () => {
     return (
         <>
             <div className="flex justify-between items-center mb-4">
-                <h1 className="font-bold text-3xl text-green-800">Quản lý phiếu nhập</h1>
+                <h1 className="font-bold text-3xl text-green-800">QUẢN LÝ PHIẾU NHẬP</h1>
                 <Button
                     onClick={() => {
                         setSelectedImport(null);
