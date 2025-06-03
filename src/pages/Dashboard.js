@@ -162,8 +162,6 @@ const Dashboard = () => {
             });
     };
 
-    useEffect(() => handleView(), []);
-
     useEffect(() => {
         const today = new Date();
 
@@ -178,6 +176,7 @@ const Dashboard = () => {
         }
 
         handleView();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fromDate, toDate]);
 
     const handlePrint = () => {
@@ -201,15 +200,6 @@ const Dashboard = () => {
                 <h1 className="font-bold text-3xl text-green-800 mb-4">
                     DASHBOARD
                 </h1>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => { setPrintData(statisticData); setTimeout(() => handlePrint(), 100); }}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
-                    Xuất PDF
-                  </button>
-                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
                     <div className="flex items-center gap-2">
                         <label className="text-green-900 text-xl float-start">Từ</label>
@@ -220,6 +210,15 @@ const Dashboard = () => {
                         <Input value={toDate} onChange={handleSetToDate} type="date" />
                     </div>
                 </div>
+                <div className="flex items-center gap-2 float-end">
+                        <button
+                            onClick={() => { setPrintData(statisticData); setTimeout(() => handlePrint(), 100); }}
+                            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+                            Xuất PDF
+                        </button>
+                    </div>
             </div>
             <div className="grid grid-cols-1 grid-rows-1 sm:grid-cols-2 gap-4 p-4 max-h-full">
                 <div className="flex flex-col gap-4">
@@ -250,9 +249,9 @@ const Dashboard = () => {
 
             </div>
             {printData && (
-              <div style={{ display: 'none' }}>
-                <DashboardPrint ref={printRef} data={printData} fromDate={fromDate} toDate={toDate} />
-              </div>
+                <div style={{ display: 'none' }}>
+                    <DashboardPrint ref={printRef} data={printData} fromDate={fromDate} toDate={toDate} />
+                </div>
             )}
         </div>
     );

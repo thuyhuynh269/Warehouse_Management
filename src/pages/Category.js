@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { DataGrid } from '@mui/x-data-grid';
 import { toast } from "react-toastify";
-import { Card, CardContent, Switch, Modal, Box, Typography } from "@mui/material";
+import { Switch, Modal, Box, Typography } from "@mui/material";
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
 import { HiOutlineSearch } from "react-icons/hi";
@@ -58,18 +58,6 @@ const Category = () => {
     setIsDetailModalOpen(true);
   };
 
-  const handleDeleteClick = async (category) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa danh mục "${category.name}"?`)) {
-      try {
-        await request.delete(`categories/${category.id}`);
-        toast.success("Xóa danh mục thành công!");
-        getData();
-      } catch (error) {
-        toast.error(error.response?.data?.message || "Không thể xóa danh mục.");
-      }
-    }
-  };
-
   const columns = [
     { field: "id", headerName: "ID", width: 50, headerClassName: 'bg-gray-100 text-base', align: 'center', headerAlign: 'center' },
     { field: "name", headerName: "Tên danh mục", width: 200, flex: 1, headerClassName: 'bg-gray-100 text-base', align: 'center', headerAlign: 'center' },
@@ -114,7 +102,7 @@ const Category = () => {
               getData();
             })
             .catch((error) => {
-              toast.error(error.message);
+              toast.error(error.response.data || "Không thể cập nhật trạng thái.");
             });
         };
 
@@ -184,7 +172,7 @@ const Category = () => {
         setRows(response.data);
       })
       .catch((error) => {
-        toast.error(error.message);
+        toast.error(error.response?.data || "Không thể tải danh mục.");
       });
   };
 
@@ -225,7 +213,7 @@ const Category = () => {
       getData();
       handleCloseModal();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Không thể thêm danh mục.");
+      toast.error(error.response?.data || "Không thể thêm danh mục.");
     }
   };
 
@@ -247,7 +235,7 @@ const Category = () => {
       getData();
       handleCloseModal();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Không thể cập nhật danh mục.");
+      toast.error(error.response?.data || "Không thể cập nhật danh mục.");
     }
   };
 

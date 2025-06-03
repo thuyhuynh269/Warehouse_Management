@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Input } from "../../components/ui";
 import { toast } from "react-toastify";
 import request from "../../utils/request";
-import { provinces, districts, getDistricts, getWards } from "vietnam-provinces";
+import { provinces, getDistricts, getWards } from "vietnam-provinces";
 import { useNavigate } from "react-router-dom";
 
 const AddWarehouse = () => {

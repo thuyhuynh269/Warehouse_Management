@@ -30,6 +30,22 @@ const styles = `
 `;
 
 const Import = () => {
+    const [rows, setRows] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+    const [selectedImport, setSelectedImport] = useState(null);
+    const [formData, setFormData] = useState({
+        employName: "",
+        status: "",
+        supplierName: "",
+        tel: "",
+        address: "",
+        email: "",
+        details: []
+    });
+
     const columns = [
         { field: "id", headerName: "ID", width: 20 },
         { field: "employeeName", headerName: "Nhân viên", width: 140 },
@@ -50,22 +66,14 @@ const Import = () => {
                                 ? 'bg-blue-100 text-blue-800'
                                 : 'bg-yellow-100 text-yellow-800'
                             }`}
-                        sx={{
-                            '& .MuiSelect-select': {
+                        sx={{'& .MuiSelect-select': {
                                 padding: '4px 8px',
                                 borderRadius: '9999px',
                                 fontSize: '0.875rem',
-                                fontWeight: 500,
-                            },
-                            '& .MuiOutlinedInput-notchedOutline': {
-                                border: 'none',
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                                border: 'none',
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                border: 'none',
-                            },
+                                fontWeight: 500,},
+                            '& .MuiOutlinedInput-notchedOutline': { border: 'none',},
+                            '&:hover .MuiOutlinedInput-notchedOutline': { border: 'none',},
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { border: 'none',},
                         }}
                     >
                         <MenuItem value={0} sx={{
@@ -141,7 +149,7 @@ const Import = () => {
                     {/* chỉnh */}
                     <button
                         onClick={() => handleEditClick(params)}
-            disabled={params.row.status === 2}
+                        disabled={params.row.status === 2}
                         className={`w-10 h-10 rounded-lg flex items-center justify-center ${params.row.status === 2
                             ? 'bg-gray-400 cursor-not-allowed opacity-50'
                             : 'bg-cyan-600 hover:bg-cyan-700'
@@ -183,24 +191,6 @@ const Import = () => {
             ),
         },
     ];
-
-    const [selectedRow, setSelectedRow] = useState(null);
-    const [rows, setRows] = useState([]);
-    const [products, setProducts] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-    const [selectedImport, setSelectedImport] = useState(null);
-    const [formData, setFormData] = useState({
-        employName: "",
-        status: "",
-        supplierName: "",
-        tel: "",
-        address: "",
-        email: "",
-        details: []
-    });
 
     const getData = () => {
         request
@@ -324,7 +314,6 @@ const Import = () => {
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setIsEditModalOpen(false);
         setIsDetailModalOpen(false);
         setSelectedImport(null);
         setFormData({
@@ -576,7 +565,7 @@ const Import = () => {
                                                                 return selectedProduct ? selectedProduct.proName : '';
                                                             }}
                                                         >
-                                                           
+
                                                             <MenuItem value="">
                                                                 <em>Chọn sản phẩm</em>
                                                             </MenuItem>
@@ -620,7 +609,7 @@ const Import = () => {
                                                 </div>
                                                 <div className="flex-shrink-0 flex items-center h-12">
                                                     <button
-                                                        onClick={() => deleteImportDetail(index)}
+                                                        onClick={(e) => { e.preventDefault(); deleteImportDetail(index) }}
                                                         className="text-red-600 hover:text-white hover:bg-red-500 transition rounded-full p-2"
                                                         style={{ minWidth: 40 }}
                                                         title="Xóa chi tiết"
