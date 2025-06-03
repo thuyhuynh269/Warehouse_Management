@@ -82,13 +82,13 @@ const Login = () => {
         <h2 className="text-xl font-bold mb-6 text-center">
           Login to start managing your warehouse
         </h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+        <form onSubmit={handleSubmit} className=" text-center">
+          <div className="mb-4 text-left">
             <label
               htmlFor="username"
               className="block text-sm font-medium text-gray-700"
             >
-              Username
+              Tên đăng nhập
             </label>
             <Input
               type="text"
@@ -96,15 +96,15 @@ const Login = () => {
               name="username"
               onChange={(e) => setUsername(e.target.value)}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-green-500 sm:text-sm"
-              placeholder="Enter username"
+              placeholder="Nhập tên đăng nhập"
             />
           </div>
-          <div className="mb-6">
+          <div className="mb-6 text-left">
             <label
               htmlFor="password"
               className="block text-sm font-medium text-gray-700"
             >
-              Password
+              Mật khẩu
             </label>
             <Input
               type="password"
@@ -112,14 +112,14 @@ const Login = () => {
               name="password"
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-green-500 sm:text-sm"
-              placeholder="Enter password"
+              placeholder="Nhập mật khẩu"
             />
           </div>
           <label className="block text-sm font-medium text-red-700">
             {error}
           </label>
           <Button type="submit" primary className={"px-8 rounded-lg mt-4"}>
-            Submit
+            Đăng nhập
           </Button>
         </form>
       </div>

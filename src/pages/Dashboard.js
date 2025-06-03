@@ -197,7 +197,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 grid-rows-1 sm:grid-cols-2 gap-4 p-4 max-h-full">
                 <div className="flex flex-col gap-4">
                     <div className="w-full">
-                        <h3 className="text-xl font-bold text-green-800 text-center">Số phiếu nhập/xuất hoàn thành</h3>
+                        <h3 className="text-xl font-bold text-green-800 text-center">Số phiếu nhập/xuất</h3>
                         <canvas ref={canvasCountRef} className="border border-black"></canvas>
                     </div>
                     <div className="w-full">
