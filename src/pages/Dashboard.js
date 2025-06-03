@@ -162,8 +162,6 @@ const Dashboard = () => {
             });
     };
 
-    useEffect(() => handleView(), []);
-
     useEffect(() => {
         const today = new Date();
 
@@ -178,6 +176,7 @@ const Dashboard = () => {
         }
 
         handleView();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fromDate, toDate]);
 
     const handlePrint = () => {

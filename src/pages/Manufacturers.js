@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { DataGrid } from '@mui/x-data-grid';
 
 import { toast } from "react-toastify";
 
-import { Card, CardContent, Select, MenuItem, InputLabel, Switch, Modal, Box, Typography } from "@mui/material";
+import { Switch, Modal, Box, Typography } from "@mui/material";
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
 import { HiOutlineSearch } from "react-icons/hi";
@@ -166,12 +166,11 @@ const Manufacturer = () => {
     request
       .get("Manufacturers")
       .then((response) => {
-        console.log("Data fetched by getData:", response.data);
         setRows(response.data);
         setFilteredRows(response.data);
       })
       .catch((error) => {
-        toast.error(error.message);
+        toast.error(error.response.data);
       });
   };
 

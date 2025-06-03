@@ -44,7 +44,6 @@ const Export = () => {
   const [products, setProducts] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedExport, setSelectedExport] = useState(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -59,7 +58,6 @@ const Export = () => {
   const [productsInWarehouses, setProductsInWarehouses] = useState({});
   const [printData, setPrintData] = useState(null);
   const printRef = useRef();
-  const [searchQuery, setSearchQuery] = useState('');
 
   const columns = [
     { field: "id", headerName: "ID", width: 60 },
@@ -330,7 +328,6 @@ const Export = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setIsEditModalOpen(false);
     setIsDetailModalOpen(false);
     setSelectedExport(null);
     setFormData({
