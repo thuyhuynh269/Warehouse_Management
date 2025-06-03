@@ -620,7 +620,7 @@ const Import = () => {
                                                 </div>
                                                 <div className="flex-shrink-0 flex items-center h-12">
                                                     <button
-                                                        onClick={() => deleteImportDetail(index)}
+                                                        onClick={(e) => {e.preventDefault(); deleteImportDetail(index)}}
                                                         className="text-red-600 hover:text-white hover:bg-red-500 transition rounded-full p-2"
                                                         style={{ minWidth: 40 }}
                                                         title="Xóa chi tiết"

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { DataGrid } from '@mui/x-data-grid';
 import { toast } from "react-toastify";
-import { Card, CardContent, Select, MenuItem, Paper, Typography, Box } from "@mui/material";
+import { Card, CardContent, Select, MenuItem } from "@mui/material";
 import request from "../utils/request";
 import { Button, Input } from "../components/ui";
 import ExportPrint from './ExportPrint';
@@ -358,8 +358,8 @@ const Export = () => {
       ...prev,
       exportDetails: prev.exportDetails.filter((_, i) => i !== index)
     }));
+    
   };
-
   const updateExportDetail = (index, field, value) => {
     // Prevent negative numbers for quantity and price
     if ((field === 'quantity' || field === 'price') && Number(value) < 0) {
@@ -741,7 +741,7 @@ const Export = () => {
                       </div>
                       <div className="flex-shrink-0 flex items-center justify-end mt-2 md:mt-0">
                         <button
-                          onClick={() => removeExportDetail(index)}
+                          onClick={(e) => {e.preventDefault(); removeExportDetail(index)}}
                           className="text-red-600 hover:text-white hover:bg-red-500 transition rounded-full p-2"
                           style={{ minWidth: 40 }}
                           title="Xóa chi tiết"
