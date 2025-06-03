@@ -741,7 +741,8 @@ const Export = () => {
                       </div>
                       <div className="flex-shrink-0 flex items-center justify-end mt-2 md:mt-0">
                         <button
-                          onClick={() => removeExportDetail(index)}
+                          type="button"
+                          onClick={e => { e.preventDefault(); removeExportDetail(index); }}
                           className="text-red-600 hover:text-white hover:bg-red-500 transition rounded-full p-2"
                           style={{ minWidth: 40 }}
                           title="Xóa chi tiết"
